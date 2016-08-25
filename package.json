@@ -4,7 +4,8 @@
   "description": "An API for remotely running generic commands.",
   "main": "index.js",
   "scripts": {
-    "build": "babel --out-dir dist/ src/"
+    "build": "babel --out-dir dist/ src/",
+    "start": "npm run build && env $(cat .env) node index.js"
   },
   "license": "ISC",
   "devDependencies": {
@@ -19,7 +20,11 @@
     "eslint-config-google": "^0.6.0"
   },
   "dependencies": {
-    "koa": "^1.2.1"
+    "bcryptjs": "^2.3.0",
+    "debug": "^2.2.0",
+    "koa": "^1.2.1",
+    "koa-router": "^5.4.0",
+    "lodash": "^4.15.0"
   },
   "eslintConfig": {
     "extends": "google",
@@ -31,6 +36,9 @@
       "node": true,
       "mocha": true,
       "es6": true
+    },
+    "rules": {
+      "valid-jsdoc": "off"
     }
   }
 }
