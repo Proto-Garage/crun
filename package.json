@@ -1,0 +1,36 @@
+{
+  "name": "crun",
+  "version": "0.0.1",
+  "description": "An API for remotely running generic commands.",
+  "main": "index.js",
+  "scripts": {
+    "build": "babel --out-dir dist/ src/"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "babel-cli": "^6.14.0",
+    "babel-plugin-transform-es2015-block-scoping": "^6.1.18",
+    "babel-plugin-transform-es2015-destructuring": "^6.1.18",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.0.18",
+    "babel-plugin-transform-es2015-parameters": "^6.0.18",
+    "babel-plugin-transform-es2015-spread": "^6.6.5",
+    "babel-plugin-transform-strict-mode": "^6.0.15",
+    "eslint": "^3.3.1",
+    "eslint-config-google": "^0.6.0"
+  },
+  "dependencies": {
+    "koa": "^1.2.1"
+  },
+  "eslintConfig": {
+    "extends": "google",
+    "parserOptions": {
+      "ecmaVersion": 6,
+      "sourceType": "module"
+    },
+    "env": {
+      "node": true,
+      "mocha": true,
+      "es6": true
+    }
+  }
+}
