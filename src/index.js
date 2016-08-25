@@ -4,6 +4,7 @@ import middlewares from './middlewares';
 import * as Util from './utilities';
 import debug from 'debug';
 import routes from './routes';
+import co from 'co';
 
 let logger = debug('boot');
 let router = require('koa-router')();
@@ -44,5 +45,11 @@ app
   .use(router.routes())
   .use(router.allowedMethods());
 
-app.listen(process.env.HTTP_PORT);
-logger(`Server bound to port ${process.env.HTTP_PORT}.`);
+global.CRUN = {};
+
+global.CRUN.started = co(function * () {
+  yield new Promise(function(resolve) {
+    global.CRUN.server = app.listen(process.env.HTTP_PORT, resolve);
+  });
+  logger(`Server bound to port ${process.env.HTTP_PORT}.`);
+});
