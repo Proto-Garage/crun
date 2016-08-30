@@ -1,5 +1,6 @@
 import path from 'path';
 import _ from 'lodash';
+import bcrypt from 'bcryptjs';
 
 /**
  * Require all files inside a directory
@@ -16,5 +17,31 @@ export function dynamicRequire(dir, namespace) {
     } else {
       _.merge(global, mod);
     }
+  });
+}
+
+/**
+ * Calculate bcrypt hash
+ * @param {string} message
+ */
+export function bcryptHash(message) {
+  return new Promise(function(resolve, reject) {
+    bcrypt.hash(message, 10, function(err, result) {
+      if (err) return reject(err);
+      resolve(result);
+    });
+  });
+}
+
+/**
+ * Compare bcrypt hash
+ * @param {string} message
+ */
+export function bcryptCompare(message, hash) {
+  return new Promise(function(resolve, reject) {
+    bcrypt.compare(message, hash, function(err, result) {
+      if (err) return reject(err);
+      resolve(result);
+    });
   });
 }

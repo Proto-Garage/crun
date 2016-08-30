@@ -5,6 +5,7 @@ import * as Util from './utilities';
 import debug from 'debug';
 import routes from './routes';
 import co from 'co';
+import bootloaders from './bootloaders';
 
 let logger = debug('boot');
 let router = require('koa-router')();
@@ -12,44 +13,47 @@ let router = require('koa-router')();
 logger('Loading utilities.');
 global.Util = Util;
 
-let app = koa();
-
 _.merge(global, require('./error'));
 
-logger('Loading models.');
-Util.dynamicRequire('./models');
+let app = koa();
+global.app = {};
 
-logger('Loading controllers.');
-Util.dynamicRequire('./controllers');
+global.app.started = co(function * () {
+  for (let bootloader of bootloaders) {
+    yield bootloader;
+  }
 
-logger('Loading middlewares.');
-_.each(middlewares, middleware => {
-  app.use(middleware);
-});
+  logger('Loading models.');
+  Util.dynamicRequire('./models');
 
-logger('Attaching routes.');
-_.each(routes, (value, key) => {
-  let handler = _.get(global, value);
-  if (!handler) throw new Error(`${value} does not exist.`);
+  logger('Loading controllers.');
+  Util.dynamicRequire('./controllers');
 
-  let match = key.match(/^(GET|POST|DELETE|PUT|DELETE) (.+)$/);
-  let method = match[1].toLowerCase();
-  let path = match[2];
-  router[method](path, function * (next) {
-    yield handler.call(this);
-    yield next;
+  logger('Loading middlewares.');
+  _.each(middlewares, middleware => {
+    app.use(middleware);
   });
-});
 
-app
-  .use(router.routes())
-  .use(router.allowedMethods());
+  logger('Attaching routes.');
+  _.each(routes, (value, key) => {
+    let handler = _.get(global, value);
+    if (!handler) throw new Error(`${value} does not exist.`);
 
-global.CRUN = {};
+    let match = key.match(/^(GET|POST|DELETE|PUT|DELETE) (.+)$/);
+    let method = match[1].toLowerCase();
+    let path = match[2];
+    router[method](path, function * (next) {
+      yield handler.call(this);
+      yield next;
+    });
+  });
 
-global.CRUN.started = co(function * () {
+  app
+    .use(router.routes())
+    .use(router.allowedMethods());
+
   yield new Promise(function(resolve) {
-    global.CRUN.server = app.listen(process.env.HTTP_PORT, resolve);
+    global.app.server = app.listen(process.env.HTTP_PORT, resolve);
   });
   logger(`Server bound to port ${process.env.HTTP_PORT}.`);
 });
