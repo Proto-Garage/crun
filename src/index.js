@@ -1,3 +1,4 @@
+/* globals User */
 import _ from 'lodash';
 import koa from 'koa';
 import middlewares from './middlewares';
@@ -48,6 +49,20 @@ global.app.started = co(function * () {
     });
   });
 
+  logger('Initializing admin account.');
+  let admin = yield User.findOne({username: process.env.ADMIN_USERNAME});
+  if (admin) {
+    yield admin.update({
+      password: yield Util.bcryptHash(process.env.ADMIN_PASSWORD)
+    }).exec();
+  } else {
+    admin = new User({
+      username: process.env.ADMIN_USERNAME,
+      password: process.env.ADMIN_PASSWORD
+    });
+    yield admin.save();
+  }
+
   app
     .use(router.routes())
     .use(router.allowedMethods());
@@ -57,3 +72,8 @@ global.app.started = co(function * () {
   });
   logger(`Server bound to port ${process.env.HTTP_PORT}.`);
 });
+
+global.app.started.catch(function(err) {
+  console.error(err);
+});
+
