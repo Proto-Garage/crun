@@ -1,12 +1,13 @@
-/* globals User */
+/* globals User, Role, Policies */
 import _ from 'lodash';
 import koa from 'koa';
-import middlewares from './middlewares';
 import * as Util from './utilities';
 import debug from 'debug';
 import routes from './routes';
 import co from 'co';
 import bootloaders from './bootloaders';
+import json from 'koa-json';
+import compose from 'koa-compose';
 
 let logger = debug('boot');
 let router = require('koa-router')();
@@ -17,9 +18,12 @@ global.Util = Util;
 _.merge(global, require('./error'));
 
 let app = koa();
+
 global.app = {};
 
 global.app.started = co(function * () {
+  app.use(json({pretty: false, param: 'pretty'}));
+
   for (let bootloader of bootloaders) {
     yield bootloader;
   }
@@ -31,34 +35,58 @@ global.app.started = co(function * () {
   Util.dynamicRequire('./controllers');
 
   logger('Loading middlewares.');
+  let middlewares = require('./middlewares').default;
   _.each(middlewares, middleware => {
     app.use(middleware);
   });
 
+  logger('Loading policies.');
+  Util.dynamicRequire('./policies', 'Policies');
+  let policies = require('./policies').default;
+
   logger('Attaching routes.');
   _.each(routes, (value, key) => {
+    let stack = [];
     let handler = _.get(global, value);
     if (!handler) throw new Error(`${value} does not exist.`);
-
+    let policyList = _.get(policies, value);
+    if (policyList) {
+      _.each(policyList, policy => {
+        if (Policies[policy]) {
+          stack.push(Policies[policy]);
+        }
+      });
+    }
     let match = key.match(/^(GET|POST|DELETE|PUT|DELETE) (.+)$/);
     let method = match[1].toLowerCase();
     let path = match[2];
-    router[method](path, function * (next) {
+    stack.push(function * (next) {
       yield handler.call(this);
       yield next;
     });
+    router[method](path, compose(stack));
   });
 
   logger('Initializing admin account.');
+  let role = yield Role.findOneAndUpdate({name: process.env.ADMIN_USERNAME}, {
+    operations: [
+      {name: 'CREATE_USER'},
+      {name: 'CREATE_ROLE'},
+      {name: 'ASSIGN_ROLE_OPERATION'}
+    ]
+  }, {upsert: true, new: true}).exec();
+
   let admin = yield User.findOne({username: process.env.ADMIN_USERNAME});
   if (admin) {
     yield admin.update({
-      password: yield Util.bcryptHash(process.env.ADMIN_PASSWORD)
+      password: yield Util.bcryptHash(process.env.ADMIN_PASSWORD),
+      roles: [role]
     }).exec();
   } else {
     admin = new User({
       username: process.env.ADMIN_USERNAME,
-      password: process.env.ADMIN_PASSWORD
+      password: process.env.ADMIN_PASSWORD,
+      roles: [role]
     });
     yield admin.save();
   }
@@ -74,6 +102,6 @@ global.app.started = co(function * () {
 });
 
 global.app.started.catch(function(err) {
-  console.error(err);
+  console.error(err, err.stack);
 });
 

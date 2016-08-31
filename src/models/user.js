@@ -2,12 +2,10 @@
 import db from '../lib/mongoose';
 import mongoose from 'mongoose';
 import co from 'co';
-import {v1 as uid} from 'node-uuid';
 
 let Schema = mongoose.Schema;
 
 let schema = new Schema({
-  uid: String,
   username: {
     type: String,
     required: true
@@ -15,15 +13,13 @@ let schema = new Schema({
   password: {
     type: String,
     required: true
-  }
+  },
+  roles: [{type: Schema.Types.ObjectId, ref: 'Role'}]
 });
 
 schema.pre('save', function(next) {
   let self = this;
 
-  if (!this.uid) {
-    this.uid = uid();
-  }
   co(function * () {
     self.password = yield Util.bcryptHash(self.password);
   }).then(next).catch(next);
@@ -33,6 +29,7 @@ schema.statics.verifyCredentials = function * (credentials) {
   let user = yield this
     .model('User')
     .findOne({username: credentials.username})
+    .populate('roles')
     .exec();
 
   if (!user) {
@@ -52,10 +49,9 @@ schema.statics.verifyCredentials = function * (credentials) {
     );
   }
 
-  return true;
+  return user;
 };
 
-schema.index({uid: 1}, {unique: true});
 schema.index({username: 1}, {unique: true});
 
 export let User = db.model('User', schema);
