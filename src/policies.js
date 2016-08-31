@@ -9,6 +9,7 @@ export default {
   CommandController: {
     create: ['validCredentials'],
     find: ['validCredentials'],
-    findOne: ['validCredentials']
+    findOne: ['validCredentials'],
+    remove: ['validCredentials']
   }
 };

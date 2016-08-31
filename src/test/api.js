@@ -134,6 +134,7 @@ describe('CRUN API', function() {
           .auth(admin.username, admin.password)
           .expect(function(res) {
             expect(res.body).to.have.property('uri');
+            expect(res.body).to.have.property('_id');
           })
           .expect(201);
 
@@ -154,7 +155,7 @@ describe('CRUN API', function() {
     });
     describe('GET /commands', function() {
       before(function * () {
-        yield _.times(5, item => {
+        yield _.times(20, item => {
           return request
             .post('/commands')
             .send({name: 'test_' + item, command: 'sleep 2'})
@@ -171,6 +172,8 @@ describe('CRUN API', function() {
             expect(res.body.links).to.has.property('self');
             expect(res.body).to.has.property('data').that.is.a('array');
             _.each(res.body.data, item => {
+              expect(item).to.has.property('_id');
+              expect(item).to.has.property('uri');
               expect(item).to.has.property('name');
               expect(item).to.has.property('command');
             });
@@ -197,10 +200,45 @@ describe('CRUN API', function() {
             expect(res.body).to.has.property('links');
             expect(res.body.links).to.has.property('self');
             expect(res.body).to.has.property('data');
+            expect(res.body.data).to.has.property('_id');
             expect(res.body.data).to.has.property('name');
             expect(res.body.data).to.has.property('command');
           })
           .expect(200);
+      });
+      it('should return 404', function * () {
+        yield request
+          .get(uri + '0')
+          .auth(admin.username, admin.password)
+          .expect(function(res) {
+            expect(res.body).to.has.property('code', 'NOT_FOUND');
+          })
+          .expect(404);
+      });
+    });
+    describe('DELETE /commands/:id', function() {
+      let uri;
+      let _id;
+      before(function * () {
+        let res = yield request
+          .post('/commands')
+          .send({name: 'sleepy', command: 'sleep 2'})
+          .auth(admin.username, admin.password)
+          .expect(function(res) {
+            _id = res.body._id;
+          })
+          .expect(201);
+
+        uri = res.body.uri.replace(process.env.BASE_URL, '');
+      });
+      it('should retrieve single command', function * () {
+        yield request
+          .delete(uri)
+          .auth(admin.username, admin.password)
+          .expect(200);
+
+        let command = yield Command.findById(_id).exec();
+        expect(command).to.be.equal(null);
       });
       it('should return 404', function * () {
         yield request
