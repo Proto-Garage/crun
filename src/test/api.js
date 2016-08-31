@@ -91,7 +91,8 @@ describe('CRUN API', function() {
           expect(res.body).to.has.property('data');
           expect(res.body.data[0]).to.has.property('name', 'staging');
           expect(res.body.data[0]).to.has.property('operations');
-          expect(res.body.data[0].operations[0]).to.has.property('name', 'CREATE_ROLE');
+          expect(res.body.data[0].operations[0])
+            .to.has.property('name', 'CREATE_ROLE');
         })
         .expect(200);
     });
