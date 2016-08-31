@@ -1,10 +1,12 @@
-/* globals app, Role */
+/* globals app, Role, Command */
 /* eslint max-nested-callbacks: ["error", 6]*/
 import {expect} from 'chai';
 
 let request;
 
 describe('CRUN API', function() {
+  this.timeout(20000);
+
   let admin = {
     username: process.env.ADMIN_USERNAME,
     password: process.env.ADMIN_PASSWORD
@@ -71,6 +73,26 @@ describe('CRUN API', function() {
   });
 
   describe('Roles', function() {
+    it('should return INVALID_ROLE_OPERATION', function * () {
+      yield request
+        .post('/roles')
+        .send({name: 'staging', operations: [{name: 'CREATE_SOMETHING'}]})
+        .auth(admin.username, admin.password)
+        .expect(function(res) {
+          expect(res.body).to.has.property('code', 'INVALID_ROLE_OPERATION');
+        })
+        .expect(400);
+    });
+    it('should return validation error', function * () {
+      yield request
+        .post('/roles')
+        .send({operations: [{name: 'CREATE_ROLE'}]})
+        .auth(admin.username, admin.password)
+        .expect(function(res) {
+          expect(res.body).to.has.property('code', 'INVALID_REQUEST');
+        })
+        .expect(400);
+    });
     it('should create new role', function * () {
       yield request
         .post('/roles')
@@ -95,6 +117,40 @@ describe('CRUN API', function() {
             .to.has.property('name', 'CREATE_ROLE');
         })
         .expect(200);
+    });
+  });
+  describe('Commands', function() {
+    describe('POST /commands', function() {
+      it('should create new command', function * () {
+        let command = {
+          name: 'sleep',
+          command: 'sleep 5'
+        };
+
+        yield request
+          .post('/commands')
+          .send(command)
+          .auth(admin.username, admin.password)
+          .expect(function(res) {
+            expect(res.body).to.have.property('uri');
+          })
+          .expect(201);
+
+        command = yield Command.findOne({name: 'sleep'}).exec();
+        expect(command).to.has.property('name', 'sleep');
+        expect(command).to.has.property('command', 'sleep 5');
+        console.log(command);
+      });
+      it('should return INVALID_REQUEST', function * () {
+        yield request
+          .post('/commands')
+          .send({name: 'sleep'})
+          .auth(admin.username, admin.password)
+          .expect(function(res) {
+            expect(res.body).to.have.property('code', 'INVALID_REQUEST');
+          })
+          .expect(400);
+      });
     });
   });
 });

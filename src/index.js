@@ -8,6 +8,7 @@ import co from 'co';
 import bootloaders from './bootloaders';
 import json from 'koa-json';
 import compose from 'koa-compose';
+import bodyParser from 'koa-bodyparser';
 
 let logger = debug('boot');
 let router = require('koa-router')();
@@ -23,6 +24,7 @@ global.app = {};
 
 global.app.started = co(function * () {
   app.use(json({pretty: false, param: 'pretty'}));
+  app.use(bodyParser());
 
   for (let bootloader of bootloaders) {
     yield bootloader;

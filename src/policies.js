@@ -5,5 +5,8 @@ export default {
   },
   UserController: {
     find: ['validCredentials']
+  },
+  CommandController: {
+    create: ['validCredentials']
   }
 };

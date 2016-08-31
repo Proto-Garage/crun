@@ -17,9 +17,9 @@ export let RoleController = {
         `${_.first(diff)} is invalid.`);
     }
 
-    let role = new Role(_.merge(params, {
-      creator: this.user
-    }));
+    params.creator = this.user;
+
+    let role = new Role(params);
     yield role.save();
     this.status = 201;
   },

@@ -1,6 +1,5 @@
 /* globals AppError */
 import _ from 'lodash';
-import parse from 'co-body';
 
 let statusCodes = {
   UNAUTHORIZED: 401,
@@ -14,13 +13,19 @@ export default [
     try {
       yield next;
     } catch (err) {
-      console.error(err);
       if (err instanceof AppError) {
         this.body = err.toObject();
         this.status = statusCodes[err.code] || 400;
         if (err.code === 'UNAUTHORIZED') {
           this.set('WWW-Authenticate', 'Basic realm="Login"');
         }
+      } else if (err.name === 'ValidationError') {
+        this.status = 400;
+        this.body = {
+          code: 'INVALID_REQUEST',
+          message: err.message,
+          errors: err.errors
+        };
       } else {
         this.body = {
           code: 'INTERNAL_SERVER_ERROR',
@@ -29,12 +34,5 @@ export default [
         this.status = 500;
       }
     }
-  },
-  function * parseBody(next) {
-    if (_.includes(['POST', 'PUT'], this.request.method)) {
-      let body = yield parse(this.req);
-      this.request.body = body;
-    }
-    yield next;
   }
 ];

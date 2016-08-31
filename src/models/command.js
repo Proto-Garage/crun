@@ -12,12 +12,13 @@ let schema = new Schema({
     type: String,
     required: true
   },
+  creator: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
   cwd: String,
-  status: {
-    type: String,
-    enum: ['PENDING', 'RUNNING', 'STOPPED', 'FAILED', 'SUCCEEDED'],
-    default: 'PENDING'
-  }
+  env: {}
 });
 
 export let Command = db.model('Command', schema);
