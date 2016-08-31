@@ -26,7 +26,8 @@ export let CommandController = {
   find: function * () {
     let commands = yield Command
       .find({creator: this.user})
-      .select({name: 1, command: 1, env: 1, cwd: 1, _id: 0})
+      .select({name: 1, command: 1, env: 1, cwd: 1, _id: 0, createdAt: 1})
+      .sort({createdAt: -1})
       .exec();
 
     this.body = {
@@ -43,7 +44,7 @@ export let CommandController = {
     }
     let command = yield Command
       .findOne({_id: this.params.id, creator: this.user})
-      .select({name: 1, command: 1, env: 1, cwd: 1, _id: 0})
+      .select({name: 1, command: 1, env: 1, cwd: 1, _id: 0, createdAt: 1})
       .exec();
 
     if (!command) {

@@ -18,7 +18,16 @@ let schema = new Schema({
     required: true
   },
   cwd: String,
-  env: {}
+  env: {},
+  createdAt: Date
 });
+
+schema.pre('save', function(next) {
+  this.createdAt = new Date();
+  next();
+});
+
+schema.index({createdAt: -1});
+schema.index({name: 1});
 
 export let Command = db.model('Command', schema);
