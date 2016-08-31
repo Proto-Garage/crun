@@ -7,6 +7,8 @@ export default {
     find: ['validCredentials']
   },
   CommandController: {
-    create: ['validCredentials']
+    create: ['validCredentials'],
+    find: ['validCredentials'],
+    findOne: ['validCredentials']
   }
 };

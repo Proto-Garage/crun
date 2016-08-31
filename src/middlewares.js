@@ -1,18 +1,44 @@
 /* globals AppError */
-import _ from 'lodash';
+import debug from 'debug';
+
+let logger = debug('http');
 
 let statusCodes = {
   UNAUTHORIZED: 401,
   INVALID_USERNAME: 403,
   INVALID_PASSWORD: 403,
-  INVALID_ROLE_OPERATION: 400
+  INVALID_ROLE_OPERATION: 400,
+  NOT_FOUND: 404
 };
 
 export default [
+  function * httpLogger(next) {
+    let request = {
+      method: this.request.method,
+      url: this.request.originalUrl,
+      headers: this.request.headers
+    };
+    if (this.request.body) {
+      request.body = this.request.body;
+    }
+    logger('request', request);
+    yield next;
+    let response = {
+      method: this.request.method,
+      url: this.request.originalUrl,
+      headers: this.headers,
+      status: this.status
+    };
+    if (this.body) {
+      response.body = this.body;
+    }
+    logger('response', response);
+  },
   function * handleErrors(next) {
     try {
       yield next;
     } catch (err) {
+      console.error(err);
       if (err instanceof AppError) {
         this.body = err.toObject();
         this.status = statusCodes[err.code] || 400;

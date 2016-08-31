@@ -48,6 +48,7 @@ global.app.started = co(function * () {
 
   logger('Attaching routes.');
   _.each(routes, (value, key) => {
+    logger('route', key);
     let stack = [];
     let handler = _.get(global, value);
     if (!handler) throw new Error(`${value} does not exist.`);

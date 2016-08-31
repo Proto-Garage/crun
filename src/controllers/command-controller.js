@@ -1,6 +1,9 @@
-/* globals Command */
+/* globals Command, AppError */
 import _ from 'lodash';
 import url from 'url';
+import mongoose from 'mongoose';
+
+let ObjectId = mongoose.Types.ObjectId;
 
 export let CommandController = {
   create: function * () {
@@ -20,7 +23,39 @@ export let CommandController = {
     };
     this.status = 201;
   },
-  findOne: function * () {
+  find: function * () {
+    let commands = yield Command
+      .find({creator: this.user})
+      .select({name: 1, command: 1, env: 1, cwd: 1, _id: 0})
+      .exec();
 
+    this.body = {
+      links: {
+        self: url.resolve(process.env.BASE_URL, '/commands')
+      },
+      data: commands
+    };
+  },
+  findOne: function * () {
+    if (!ObjectId.isValid(this.params.id)) {
+      throw new AppError('NOT_FOUND',
+        `${this.params.id} command does not exist.`);
+    }
+    let command = yield Command
+      .findOne({_id: this.params.id, creator: this.user})
+      .select({name: 1, command: 1, env: 1, cwd: 1, _id: 0})
+      .exec();
+
+    if (!command) {
+      throw new AppError('NOT_FOUND',
+        `${this.params.id} command does not exist.`);
+    }
+
+    this.body = {
+      links: {
+        self: url.resolve(process.env.BASE_URL, '/commands/' + this.params.id)
+      },
+      data: command
+    };
   }
 };

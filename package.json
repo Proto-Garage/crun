@@ -7,7 +7,7 @@
     "build": "rm -rf dist/ && babel --out-dir dist/ src/",
     "start": "npm run build && env $(cat .env) node index.js",
     "flushdb": "mongo crun --eval \"db.dropDatabase()\"",
-    "test": "npm run flushdb && npm run build && env $(cat .env) mocha --require co-mocha --require ./index dist/test/"
+    "test": "npm run flushdb && npm run build && env $(cat .env) mocha --require co-mocha --require ./index --bail dist/test/"
   },
   "license": "ISC",
   "devDependencies": {
