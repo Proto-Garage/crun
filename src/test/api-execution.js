@@ -1,7 +1,6 @@
 /* globals app, Execution */
 /* eslint max-nested-callbacks: ["error", 6]*/
 import {expect} from 'chai';
-import _ from 'lodash';
 import mongoose from 'mongoose';
 
 let ObjectId = mongoose.Types.ObjectId;

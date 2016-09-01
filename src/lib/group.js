@@ -15,15 +15,29 @@ export default class Group {
       throw new Error(`${options.type} is not supported.`);
     }
     this.options = options;
+    this.status = 'PENDING';
   }
 
   * run() {
+    this.status = 'STARTED';
+    this.startedAt = Date.now();
+
     if (this.options.type === 'command') {
+      this.options.command.on('status', status => {
+        this.status = status;
+      });
+
       yield this.options.command.run();
     } else if (this.options.type === 'serial') {
-      for (let group of this.options.groups) {
-        yield group.run();
+      try {
+        for (let group of this.options.groups) {
+          yield group.run();
+        }
+      } catch (err) {
+        this.status = 'FAILED';
+        throw err;
       }
+      this.status = 'SUCCEEDED';
     } else if (this.options.type === 'parallel') {
       let errors = [];
       yield _.map(this.options.groups, group => {
@@ -37,8 +51,11 @@ export default class Group {
       });
 
       if (errors.length > 0) {
+        this.status = 'FAILED';
         throw errors;
       }
+
+      this.status = 'SUCCEEDED';
     } else {
       throw new Error(`${this.options.type} is not supported.`);
     }

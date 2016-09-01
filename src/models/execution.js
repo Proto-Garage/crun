@@ -19,12 +19,7 @@ let schema = new Schema({
     required: true
   },
   createdAt: Date,
-  status: {
-    type: String,
-    enum: ['PENDING', 'STARTED', 'STOPPED', 'STOPPING', 'FAILED', 'SUCCEEDED'],
-    default: 'PENDING'
-  },
-  executionStatus: {}
+  status: {}
 });
 
 schema.pre('save', function(next) {
