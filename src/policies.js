@@ -11,5 +11,11 @@ export default {
     find: ['validCredentials'],
     findOne: ['validCredentials'],
     remove: ['validCredentials']
+  },
+  GroupController: {
+    create: ['validCredentials'],
+    find: ['validCredentials'],
+    findOne: ['validCredentials'],
+    remove: ['validCredentials']
   }
 };

@@ -8,17 +8,12 @@ let schema = new Schema({
     type: String,
     required: true
   },
-  command: {
-    type: String,
-    required: true
-  },
   creator: {
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true
   },
-  cwd: String,
-  env: {},
+  group: {},
   createdAt: Date
 });
 
@@ -31,4 +26,4 @@ schema.index({creator: 1});
 schema.index({createdAt: -1});
 schema.index({name: 1});
 
-export let Command = db.model('Command', schema);
+export let Group = db.model('Group', schema);
