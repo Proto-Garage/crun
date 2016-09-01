@@ -9,13 +9,13 @@ export default {
   CommandController: {
     create: ['validCredentials'],
     find: ['validCredentials'],
-    findOne: ['validCredentials'],
-    remove: ['validCredentials']
+    findOne: ['validCredentials', 'validObjectId'],
+    remove: ['validCredentials', 'validObjectId']
   },
   GroupController: {
     create: ['validCredentials'],
     find: ['validCredentials'],
-    findOne: ['validCredentials'],
-    remove: ['validCredentials']
+    findOne: ['validCredentials', 'validObjectId'],
+    remove: ['validCredentials', 'validObjectId']
   }
 };

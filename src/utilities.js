@@ -13,7 +13,7 @@ export function dynamicRequire(dir, namespace) {
   _.each(files, file => {
     let mod = require(path.resolve(__dirname, dir, file));
     if (namespace) {
-      global[namespace] = mod;
+      global[namespace] = _.merge(global[namespace] || {}, mod);
     } else {
       _.merge(global, mod);
     }

@@ -2,9 +2,20 @@
 import _ from 'lodash';
 import url from 'url';
 import {isValidGroup, extractCommands} from '../lib/group';
+import qs from 'querystring';
 
 export let GroupController = {
   remove: function * () {
+    let group = yield Group
+      .findOneAndRemove({creator: this.user, _id: this.params.id})
+      .exec();
+
+    if (!group) {
+      throw new AppError('NOT_FOUND',
+        `${this.params.id} group does not exist.`);
+    }
+
+    this.status = 200;
   },
   create: function * () {
     let params = _.pick(this.request.body, [
@@ -40,7 +51,47 @@ export let GroupController = {
     this.status = 201;
   },
   find: function * () {
+    let limit = Number.parseInt(this.query.limit, 10) || 10;
+    let skip = Number.parseInt(this.query.skip, 10) || 0;
+
+    let groups = yield Group
+      .find({creator: this.user})
+      .select({name: 1, group: 1, createdAt: 1})
+      .sort({createdAt: -1})
+      .skip(skip)
+      .limit(limit)
+      .lean(true)
+      .exec();
+
+    this.body = {
+      links: {
+        self: url.resolve(process.env.BASE_URL, '/groups'),
+        next: url.resolve(process.env.BASE_URL, '/groups') +
+          '?' + qs.stringify({limit, skip: limit})
+      },
+      data: _.map(groups, item => {
+        item.uri = url.resolve(process.env.BASE_URL, '/groups/' + item._id);
+        return item;
+      })
+    };
   },
   findOne: function * () {
+    let group = yield Group
+      .findOne({_id: this.params.id, creator: this.user})
+      .select({name: 1, group: 1, createdAt: 1})
+      .lean(true)
+      .exec();
+
+    if (!group) {
+      throw new AppError('NOT_FOUND',
+        `${this.params.id} group does not exist.`);
+    }
+
+    this.body = {
+      links: {
+        self: url.resolve(process.env.BASE_URL, '/groups/' + this.params.id)
+      },
+      data: group
+    };
   }
 };

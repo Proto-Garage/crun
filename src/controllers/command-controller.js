@@ -1,17 +1,10 @@
 /* globals Command, AppError */
 import _ from 'lodash';
 import url from 'url';
-import mongoose from 'mongoose';
 import qs from 'querystring';
-
-let ObjectId = mongoose.Types.ObjectId;
 
 export let CommandController = {
   remove: function * () {
-    if (!ObjectId.isValid(this.params.id)) {
-      throw new AppError('NOT_FOUND',
-        `${this.params.id} command does not exist.`);
-    }
     let command = yield Command
       .findOneAndRemove({creator: this.user, _id: this.params.id})
       .exec();
@@ -67,10 +60,6 @@ export let CommandController = {
     };
   },
   findOne: function * () {
-    if (!ObjectId.isValid(this.params.id)) {
-      throw new AppError('NOT_FOUND',
-        `${this.params.id} command does not exist.`);
-    }
     let command = yield Command
       .findOne({_id: this.params.id, creator: this.user})
       .select({name: 1, command: 1, env: 1, cwd: 1, createdAt: 1})

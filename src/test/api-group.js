@@ -233,5 +233,48 @@ describe('CRUN API', function() {
           .expect(400);
       });
     });
+
+    describe('GET /groups', function() {
+      before(function * () {
+        let result = yield request
+          .post('/commands')
+          .send({name: 'sleepy-head-2', command: 'sleep 2'})
+          .auth(admin.username, admin.password)
+          .expect(201);
+
+        yield _.times(20, index => {
+          return request
+            .post('/groups')
+            .send({
+              name: 'group ' + index,
+              group: {
+                type: 'command',
+                _id: result.body._id
+              }
+            })
+            .auth(admin.username, admin.password)
+            .expect(201);
+        });
+      });
+
+      it('should return all groups', function * () {
+        let result = yield request
+          .get('/groups')
+          .auth(admin.username, admin.password)
+          .expect(200);
+
+        console.log(result.body);
+        expect(result.body).to.has.property('links');
+        expect(result.body.links).to.has.property('self');
+        expect(result.body.links).to.has.property('next');
+        expect(result.body).to.has.property('data')
+          .that.is.a('array');
+        _.each(result.body.data, item => {
+          expect(item).to.has.property('name');
+          expect(item).to.has.property('createdAt');
+          expect(item).to.has.property('group');
+        });
+      });
+    });
   });
 });
