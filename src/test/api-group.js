@@ -263,7 +263,6 @@ describe('CRUN API', function() {
           .auth(admin.username, admin.password)
           .expect(200);
 
-        console.log(result.body);
         expect(result.body).to.has.property('links');
         expect(result.body.links).to.has.property('self');
         expect(result.body.links).to.has.property('next');
@@ -274,6 +273,80 @@ describe('CRUN API', function() {
           expect(item).to.has.property('createdAt');
           expect(item).to.has.property('group');
         });
+      });
+    });
+
+    describe('GET /groups/:id', function() {
+      let group;
+      before(function * () {
+        let result = yield request
+          .post('/commands')
+          .send({name: 'sleepy-head-3', command: 'sleep 2'})
+          .auth(admin.username, admin.password)
+          .expect(201);
+
+        result = yield request
+          .post('/groups')
+          .send({
+            name: 'test group 1',
+            group: {
+              type: 'command',
+              _id: result.body._id
+            }
+          })
+          .auth(admin.username, admin.password)
+          .expect(201);
+
+        group = result.body;
+      });
+
+      it('should return single group', function * () {
+        let result = yield request
+          .get('/groups/' + group._id)
+          .auth(admin.username, admin.password)
+          .expect(200);
+
+        expect(result.body).to.has.property('links');
+        expect(result.body.links).to.has.property('self');
+        expect(result.body).to.has.property('data');
+        expect(result.body.data).to.has.property('name');
+        expect(result.body.data).to.has.property('createdAt');
+        expect(result.body.data).to.has.property('group');
+      });
+    });
+
+    describe('DELETE /groups/:id', function() {
+      let group;
+
+      before(function * () {
+        let result = yield request
+          .post('/commands')
+          .send({name: 'sleepy-head-4', command: 'sleep 2'})
+          .auth(admin.username, admin.password)
+          .expect(201);
+
+        result = yield request
+          .post('/groups')
+          .send({
+            name: 'test group 2',
+            group: {
+              type: 'command',
+              _id: result.body._id
+            }
+          })
+          .auth(admin.username, admin.password)
+          .expect(201);
+
+        group = result.body;
+      });
+
+      it('should delete single group', function * () {
+        yield request
+          .delete('/groups/' + group._id)
+          .auth(admin.username, admin.password)
+          .expect(200);
+
+        expect(yield Group.findById(group._id).exec()).to.be.equal(null);
       });
     });
   });
