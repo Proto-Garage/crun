@@ -1,0 +1,6 @@
+machine:
+  timezone:
+    Etc/UTC
+  node:
+    version:
+      4.4.5
