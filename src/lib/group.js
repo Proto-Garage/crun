@@ -1,6 +1,50 @@
 import _ from 'lodash';
 import mongoose from 'mongoose';
 
+export default class Group {
+
+  /**
+   * Create command group object
+   * @param {object}  options
+   * @param {string}  options.type
+   * @param {Command} options.command
+   * @param {Group[]} options.groups
+   */
+  constructor(options) {
+    if (!_.includes(['command', 'serial', 'parallel'], options.type)) {
+      throw new Error(`${options.type} is not supported.`);
+    }
+    this.options = options;
+  }
+
+  * run() {
+    if (this.options.type === 'command') {
+      yield this.options.command.run();
+    } else if (this.options.type === 'serial') {
+      for (let group of this.options.groups) {
+        yield group.run();
+      }
+    } else if (this.options.type === 'parallel') {
+      let errors = [];
+      yield _.map(this.options.groups, group => {
+        return function * () {
+          try {
+            yield group.run();
+          } catch (err) {
+            errors.push(err);
+          }
+        };
+      });
+
+      if (errors.length > 0) {
+        throw errors;
+      }
+    } else {
+      throw new Error(`${this.options.type} is not supported.`);
+    }
+  }
+}
+
 /**
  * Check if object is a valid execution group
  */

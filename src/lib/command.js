@@ -1,5 +1,6 @@
 import {exec} from 'child_process';
 import _ from 'lodash';
+import {EventEmitter} from 'events';
 
 export default class Command {
 
@@ -20,6 +21,8 @@ export default class Command {
     }, options);
 
     this.status = 'PENDING';
+    this.stderr = new EventEmitter();
+    this.stdout = new EventEmitter();
   }
 
   run() {
@@ -39,6 +42,14 @@ export default class Command {
       });
 
       self.status = 'STARTED';
+
+      self.process.stdout.on('data', function(data) {
+        self.stdout.emit('data', data);
+      });
+
+      self.process.stderr.on('data', function(data) {
+        self.stderr.emit('data', data);
+      });
     });
   }
 }
