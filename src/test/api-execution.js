@@ -39,8 +39,8 @@ describe('CRUN API', function() {
         result = yield request
           .post('/groups')
           .send({
-            name: 'test group',
-            queue: 'test queue',
+            name: 'pokemon',
+            queue: 'pokemon',
             group: {
               type: 'command',
               _id: result.body._id
@@ -68,6 +68,7 @@ describe('CRUN API', function() {
         let execution = yield Execution.findById(result.body._id).exec();
         expect(execution.group.toHexString()).to.equal(group._id);
       });
+
       it('should return INVALID_REQUEST', function * () {
         yield request
           .post('/executions')
@@ -226,6 +227,98 @@ describe('CRUN API', function() {
               'status.groups[1].status'), 'SUCCEEDED');
           })
           .expect(200);
+      });
+
+      it('should return execution object', function * () {
+        let result = yield request
+          .post('/groups')
+          .send({
+            name: 'pokemon',
+            queue: 'pokemon',
+            group: {
+              type: 'command',
+              _id: command._id
+            }
+          })
+          .auth(admin.username, admin.password)
+          .expect(201);
+
+        let group = result.body;
+
+        let executions = [];
+        result = yield request
+          .post('/executions')
+          .send({group: group._id})
+          .auth(admin.username, admin.password)
+          .expect(201);
+
+        executions.push(result.body);
+
+        result = yield request
+          .post('/executions')
+          .send({group: group._id})
+          .auth(admin.username, admin.password)
+          .expect(201);
+
+        executions.push(result.body);
+
+        yield [
+          request
+            .get('/executions/' + executions[0]._id)
+            .auth(admin.username, admin.password)
+            .expect(function(res) {
+              expect(res.body.data.status).to.has.property('status', 'STARTED');
+            })
+            .expect(200),
+          request
+            .get('/executions/' + executions[1]._id)
+            .auth(admin.username, admin.password)
+            .expect(function(res) {
+              expect(res.body.data.status).to.has.property('status', 'PENDING');
+            })
+            .expect(200)
+        ];
+
+        yield Util.delay(1000);
+
+        yield [
+          request
+            .get('/executions/' + executions[0]._id)
+            .auth(admin.username, admin.password)
+            .expect(function(res) {
+              expect(res.body.data.status)
+                .to.has.property('status', 'SUCCEEDED');
+            })
+            .expect(200),
+          request
+            .get('/executions/' + executions[1]._id)
+            .auth(admin.username, admin.password)
+            .expect(function(res) {
+              expect(res.body.data.status).to.has.property('status', 'STARTED');
+            })
+            .expect(200)
+        ];
+
+        yield Util.delay(1000);
+
+        yield [
+          request
+            .get('/executions/' + executions[0]._id)
+            .auth(admin.username, admin.password)
+            .expect(function(res) {
+              expect(res.body.data.status)
+                .to.has.property('status', 'SUCCEEDED');
+            })
+            .expect(200),
+          request
+            .get('/executions/' + executions[1]._id)
+            .auth(admin.username, admin.password)
+            .expect(function(res) {
+              expect(res.body.data.status)
+                .to.has.property('status', 'SUCCEEDED');
+            })
+            .expect(200)
+        ];
       });
 
       it('should return 404', function * () {

@@ -90,17 +90,17 @@ export let ExecutionController = {
           let executionId = _.first(queues[queue]);
           try {
             yield executions[executionId].run();
-          } catch (err) {}
+          } catch (err) {
+            console.error(err);
+          }
           yield Execution
             .update({_id: executionId},
               {status: executions[executionId].toStatusObject()})
             .exec();
           queues[queue].shift();
-          if (queues[queue].length === 0) {
-            delete queues[queue];
-          }
           delete executions[executionId];
         }
+        delete queues[queue];
       });
     }
   },
