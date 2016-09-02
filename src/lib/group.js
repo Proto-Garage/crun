@@ -21,11 +21,26 @@ export default class Group {
   toStatusObject() {
     let toStatusObject = function(group) {
       if (group.options.type === 'command') {
-        let obj = _.pick(group.options, ['_id', 'type']);
-        return _.merge(obj, _.pick(group, ['status', 'startedAt']));
+        let obj = _.merge({},
+          _.pick(group.options, ['_id', 'type']),
+          _.pick(group, [
+            'status',
+            'startedAt',
+            'elapsedTime'
+          ]));
+
+        if (obj.status === 'STARTED') {
+          obj.elapsedTime = Date.now() - obj.startedAt;
+        }
+        return obj;
       }
-      let obj = _.pick(group.options, ['type']);
-      _.merge(obj, _.pick(group, ['status', 'startedAt']));
+      let obj = _.merge({},
+        _.pick(group.options, ['type']),
+        _.pick(group, ['status', 'startedAt', 'elapsedTime']));
+
+      if (obj.status === 'STARTED') {
+        obj.elapsedTime = Date.now() - obj.startedAt;
+      }
       obj.groups = _.map(group.options.groups, toStatusObject);
       return obj;
     };
@@ -39,6 +54,9 @@ export default class Group {
 
     if (this.options.type === 'command') {
       this.options.command.on('status', status => {
+        if (status === 'SUCCEEDED' || status === 'FAILED') {
+          this.elapsedTime = Date.now() - this.startedAt;
+        }
         this.status = status;
       });
 
@@ -49,6 +67,7 @@ export default class Group {
           yield group.run();
         }
       } catch (err) {
+        this.elapsedTime = Date.now() - this.startedAt;
         this.status = 'FAILED';
         throw err;
       }
@@ -66,10 +85,12 @@ export default class Group {
       });
 
       if (errors.length > 0) {
+        this.elapsedTime = Date.now() - this.startedAt;
         this.status = 'FAILED';
         throw errors;
       }
 
+      this.elapsedTime = Date.now() - this.startedAt;
       this.status = 'SUCCEEDED';
     } else {
       throw new Error(`${this.options.type} is not supported.`);

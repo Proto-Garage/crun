@@ -20,6 +20,7 @@ export default {
   },
   ExecutionController: {
     create: ['validCredentials'],
+    find: ['validCredentials'],
     findOne: ['validCredentials', 'validObjectId']
   }
 };

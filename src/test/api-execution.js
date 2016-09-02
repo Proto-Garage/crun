@@ -127,6 +127,7 @@ describe('CRUN API', function() {
             expect(res.body.data.status).to.has.property('status', 'STARTED');
             expect(res.body.data.status).to.has.property('type');
             expect(res.body.data.status).to.has.property('startedAt');
+            expect(res.body.data.status).to.has.property('elapsedTime');
           })
           .expect(200);
 
@@ -144,6 +145,7 @@ describe('CRUN API', function() {
             expect(res.body.data.status).to.has.property('status', 'SUCCEEDED');
             expect(res.body.data.status).to.has.property('type');
             expect(res.body.data.status).to.has.property('startedAt');
+            expect(res.body.data.status).to.has.property('elapsedTime');
           })
           .expect(200);
       });

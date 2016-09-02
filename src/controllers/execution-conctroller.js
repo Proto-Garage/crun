@@ -126,5 +126,13 @@ export let ExecutionController = {
       },
       data: execution
     };
+  },
+  find: function * () {
+    this.body = {
+      links: {
+        self: url.resolve(process.env.BASE_URL, '/execution')
+      },
+      data: []
+    };
   }
 };

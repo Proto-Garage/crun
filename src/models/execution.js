@@ -23,6 +23,7 @@ schema.pre('save', function(next) {
   next();
 });
 
+schema.index({status: {status: 1}});
 schema.index({creator: 1});
 schema.index({createdAt: -1});
 schema.index({group: 1});
