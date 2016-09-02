@@ -299,7 +299,7 @@ describe('CRUN API', function() {
             .expect(200)
         ];
 
-        yield Util.delay(1000);
+        yield Util.delay(2000);
 
         yield [
           request
