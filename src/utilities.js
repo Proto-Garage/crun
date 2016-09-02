@@ -3,6 +3,16 @@ import _ from 'lodash';
 import bcrypt from 'bcryptjs';
 
 /**
+ * Delay for the specified milliseconds
+ * @param {number} time
+ */
+export function delay(time) {
+  return new Promise(function(resolve) {
+    setTimeout(resolve, time);
+  });
+}
+
+/**
  * Require all files inside a directory
  * @param {string} dir
  * @param {string} namespace

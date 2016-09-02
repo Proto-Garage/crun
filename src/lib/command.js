@@ -1,7 +1,8 @@
 import {exec} from 'child_process';
 import _ from 'lodash';
+import {EventEmitter} from 'events';
 
-export default class Command {
+export default class Command extends EventEmitter {
 
   /**
    * Execute command
@@ -13,6 +14,7 @@ export default class Command {
    * @param {string} params.command
    */
   constructor(options) {
+    super();
     this.options = _.merge({
       timeout: 60000,
       env: {},
@@ -20,6 +22,8 @@ export default class Command {
     }, options);
 
     this.status = 'PENDING';
+    this.stderr = new EventEmitter();
+    this.stdout = new EventEmitter();
   }
 
   run() {
@@ -32,13 +36,24 @@ export default class Command {
       ]), function(err) {
         if (err) {
           self.status = 'FAILED';
+          self.emit('status', self.status);
           return reject(err);
         }
         self.status = 'SUCCEEDED';
+        self.emit('status', self.status);
         resolve();
       });
 
       self.status = 'STARTED';
+      self.emit('status', self.status);
+
+      self.process.stdout.on('data', function(data) {
+        self.stdout.emit('data', data);
+      });
+
+      self.process.stderr.on('data', function(data) {
+        self.stderr.emit('data', data);
+      });
     });
   }
 }

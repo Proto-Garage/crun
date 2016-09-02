@@ -4,8 +4,9 @@ import mongoose from 'mongoose';
 let Schema = mongoose.Schema;
 
 let schema = new Schema({
-  name: {
-    type: String,
+  group: {
+    type: Schema.Types.ObjectId,
+    ref: 'Group',
     required: true
   },
   creator: {
@@ -13,12 +14,8 @@ let schema = new Schema({
     ref: 'User',
     required: true
   },
-  group: {},
-  queue: {
-    type: String,
-    required: true
-  },
-  createdAt: Date
+  createdAt: Date,
+  status: {}
 });
 
 schema.pre('save', function(next) {
@@ -26,9 +23,8 @@ schema.pre('save', function(next) {
   next();
 });
 
-schema.index({queue: 1});
 schema.index({creator: 1});
 schema.index({createdAt: -1});
-schema.index({name: 1});
+schema.index({group: 1});
 
-export let Group = db.model('Group', schema);
+export let Execution = db.model('Execution', schema);

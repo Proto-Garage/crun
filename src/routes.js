@@ -10,5 +10,7 @@ export default {
   'POST /groups': 'GroupController.create',
   'GET /groups': 'GroupController.find',
   'GET /groups/:id': 'GroupController.findOne',
-  'DELETE /groups/:id': 'GroupController.remove'
+  'DELETE /groups/:id': 'GroupController.remove',
+  'POST /executions': 'ExecutionController.create',
+  'GET /executions/:id': 'ExecutionController.findOne'
 };

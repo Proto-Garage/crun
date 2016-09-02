@@ -17,5 +17,9 @@ export default {
     find: ['validCredentials'],
     findOne: ['validCredentials', 'validObjectId'],
     remove: ['validCredentials', 'validObjectId']
+  },
+  ExecutionController: {
+    create: ['validCredentials'],
+    findOne: ['validCredentials', 'validObjectId']
   }
 };
