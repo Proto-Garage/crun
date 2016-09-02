@@ -19,6 +19,7 @@ export default {
     remove: ['validCredentials', 'validObjectId']
   },
   ExecutionController: {
-    create: ['validCredentials']
+    create: ['validCredentials'],
+    findOne: ['validCredentials', 'validObjectId']
   }
 };

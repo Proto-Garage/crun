@@ -18,6 +18,21 @@ export default class Group {
     this.status = 'PENDING';
   }
 
+  toStatusObject() {
+    let toStatusObject = function(group) {
+      if (group.options.type === 'command') {
+        let obj = _.pick(group.options, ['_id', 'type']);
+        return _.merge(obj, _.pick(group, ['status', 'startedAt']));
+      }
+      let obj = _.pick(group.options, ['type']);
+      _.merge(obj, _.pick(group, ['status', 'startedAt']));
+      obj.groups = _.map(group.options.groups, toStatusObject);
+      return obj;
+    };
+
+    return toStatusObject(this);
+  }
+
   * run() {
     this.status = 'STARTED';
     this.startedAt = Date.now();

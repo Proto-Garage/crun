@@ -20,7 +20,8 @@ export let GroupController = {
   create: function * () {
     let params = _.pick(this.request.body, [
       'name',
-      'group'
+      'group',
+      'queue'
     ]);
     params.creator = this.user;
 
@@ -56,7 +57,7 @@ export let GroupController = {
 
     let groups = yield Group
       .find({creator: this.user})
-      .select({name: 1, group: 1, createdAt: 1})
+      .select({name: 1, group: 1, createdAt: 1, queue: 1})
       .sort({createdAt: -1})
       .skip(skip)
       .limit(limit)
@@ -78,7 +79,7 @@ export let GroupController = {
   findOne: function * () {
     let group = yield Group
       .findOne({_id: this.params.id, creator: this.user})
-      .select({name: 1, group: 1, createdAt: 1})
+      .select({name: 1, group: 1, createdAt: 1, queue: 1})
       .lean(true)
       .exec();
 

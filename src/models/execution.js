@@ -9,10 +9,6 @@ let schema = new Schema({
     ref: 'Group',
     required: true
   },
-  queue: {
-    type: String,
-    required: true
-  },
   creator: {
     type: Schema.Types.ObjectId,
     ref: 'User',

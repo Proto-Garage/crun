@@ -136,7 +136,8 @@ describe('CRUN API', function() {
           group: {
             type: 'command',
             _id: command._id
-          }
+          },
+          queue: 'test'
         };
 
         let res = yield request
@@ -157,6 +158,7 @@ describe('CRUN API', function() {
       it('should create new group', function * () {
         let group = {
           name: 'complex group',
+          queue: 'test',
           group: {
             type: 'serial',
             groups: [{
@@ -190,6 +192,7 @@ describe('CRUN API', function() {
       it('should return INVALID_REQUEST', function * () {
         let group = {
           name: 'complex group',
+          queue: 'test',
           group: {
             type: 'serial',
             groups: [{
@@ -214,6 +217,7 @@ describe('CRUN API', function() {
       it('should return INVALID_REQUEST', function * () {
         let group = {
           name: 'complex group',
+          queue: 'test',
           group: {
             type: 'serial',
             groups: [{
@@ -247,6 +251,7 @@ describe('CRUN API', function() {
             .post('/groups')
             .send({
               name: 'group ' + index,
+              queue: 'test',
               group: {
                 type: 'command',
                 _id: result.body._id
@@ -270,6 +275,7 @@ describe('CRUN API', function() {
           .that.is.a('array');
         _.each(result.body.data, item => {
           expect(item).to.has.property('name');
+          expect(item).to.has.property('queue');
           expect(item).to.has.property('createdAt');
           expect(item).to.has.property('group');
         });
@@ -289,6 +295,7 @@ describe('CRUN API', function() {
           .post('/groups')
           .send({
             name: 'test group 1',
+            queue: 'test',
             group: {
               type: 'command',
               _id: result.body._id
@@ -310,6 +317,7 @@ describe('CRUN API', function() {
         expect(result.body.links).to.has.property('self');
         expect(result.body).to.has.property('data');
         expect(result.body.data).to.has.property('name');
+        expect(result.body.data).to.has.property('queue');
         expect(result.body.data).to.has.property('createdAt');
         expect(result.body.data).to.has.property('group');
       });
@@ -329,6 +337,7 @@ describe('CRUN API', function() {
           .post('/groups')
           .send({
             name: 'test group 2',
+            queue: 'test',
             group: {
               type: 'command',
               _id: result.body._id

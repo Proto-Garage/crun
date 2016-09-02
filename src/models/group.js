@@ -14,6 +14,10 @@ let schema = new Schema({
     required: true
   },
   group: {},
+  queue: {
+    type: String,
+    required: true
+  },
   createdAt: Date
 });
 
@@ -22,6 +26,7 @@ schema.pre('save', function(next) {
   next();
 });
 
+schema.index({queue: 1});
 schema.index({creator: 1});
 schema.index({createdAt: -1});
 schema.index({name: 1});

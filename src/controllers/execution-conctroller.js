@@ -4,18 +4,19 @@ import url from 'url';
 import qs from 'querystring';
 import CommandObject from '../lib/command';
 import {default as GroupObject, extractCommands} from '../lib/group';
+import co from 'co';
 
 import mongoose from 'mongoose';
 
 let executions = {};
+let queues = {};
 
 let ObjectId = mongoose.Types.ObjectId;
 
 export let ExecutionController = {
   create: function * () {
     let params = _.pick(this.request.body, [
-      'group',
-      'queue'
+      'group'
     ]);
     params.creator = this.user;
 
@@ -32,6 +33,7 @@ export let ExecutionController = {
         `${params.group} does not exist.`);
     }
 
+    let queue = group.queue;
     group = group.group;
 
     let commandsList = extractCommands(group);
@@ -70,12 +72,59 @@ export let ExecutionController = {
     let execution = new Execution(params);
     yield execution.save();
 
+    let executionId = execution._id.toHexString();
+    executions[executionId] = group;
+
     this.body = {
       uri: url.resolve(process.env.BASE_URL, '/executions/' + execution._id),
-      _id: execution._id
+      _id: executionId
     };
     this.status = 201;
+
+    if (queues[queue]) {
+      queues[queue].push(executionId);
+    } else {
+      queues[queue] = [executionId];
+      co(function * () {
+        while (queues[queue].length > 0) {
+          let executionId = _.first(queues[queue]);
+          try {
+            yield executions[executionId].run();
+          } catch (err) {}
+          yield Execution
+            .update({_id: executionId},
+              {status: executions[executionId].toStatusObject()})
+            .exec();
+          queues[queue].shift();
+          if (queues[queue].length === 0) {
+            delete queues[queue];
+          }
+          delete executions[executionId];
+        }
+      });
+    }
   },
   findOne: function * () {
+    let execution = yield Execution
+      .findById(this.params.id)
+      .select({createdAt: 1, group: 1, status: 1})
+      .lean(true)
+      .exec();
+
+    if (!execution) {
+      throw new AppError('NOT_FOUND',
+        `${this.params.id} execution does not exist.`);
+    }
+
+    if (executions[execution._id]) {
+      execution.status = executions[execution._id].toStatusObject();
+    }
+
+    this.body = {
+      links: {
+        self: url.resolve(process.env.BASE_URL, '/execution/' + this.params.id)
+      },
+      data: execution
+    };
   }
 };
