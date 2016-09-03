@@ -128,11 +128,23 @@ export let ExecutionController = {
     };
   },
   find: function * () {
+    let data = yield Execution
+      .find()
+      .select({createdAt: 1, group: 1, status: 1})
+      .lean(true)
+      .exec();
+
+    _.each(data, item => {
+      if (executions[item._id]) {
+        item.status = executions[item._id].toStatusObject();
+      }
+    });
+
     this.body = {
       links: {
         self: url.resolve(process.env.BASE_URL, '/execution')
       },
-      data: []
+      data: data
     };
   }
 };

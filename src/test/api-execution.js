@@ -263,7 +263,6 @@ describe('CRUN API', function() {
           .expect(201);
 
         executions.push(result.body);
-
         yield [
           request
             .get('/executions/' + executions[0]._id)
@@ -331,6 +330,18 @@ describe('CRUN API', function() {
             expect(res.body).to.has.property('code', 'NOT_FOUND');
           })
           .expect(404);
+      });
+    });
+
+    describe('GET /executions', function() {
+      it('should return all execution instances', function * () {
+        yield request
+          .get('/executions')
+          .auth(admin.username, admin.password)
+          .expect(function(res) {
+            console.log(JSON.stringify(res.body, null, 2));
+          })
+          .expect(200);
       });
     });
   });

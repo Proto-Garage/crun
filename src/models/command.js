@@ -19,7 +19,11 @@ let schema = new Schema({
   },
   cwd: String,
   env: {},
-  createdAt: Date
+  createdAt: Date,
+  timeout: {
+    type: Number,
+    default: 60000
+  }
 });
 
 schema.pre('save', function(next) {
