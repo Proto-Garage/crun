@@ -14,12 +14,17 @@ let schema = new Schema({
     type: String,
     required: true
   },
+  creator: {
+    type: Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  createdAt: Date,
   roles: [{type: Schema.Types.ObjectId, ref: 'Role'}]
 });
 
 schema.pre('save', function(next) {
   let self = this;
-
+  this.createdAt = new Date();
   co(function * () {
     self.password = yield Util.bcryptHash(self.password);
   }).then(next).catch(next);
@@ -53,5 +58,7 @@ schema.statics.verifyCredentials = function * (credentials) {
 };
 
 schema.index({username: 1}, {unique: true});
+schema.index({creator: 1});
+schema.index({createdAt: -1});
 
 export let User = db.model('User', schema);

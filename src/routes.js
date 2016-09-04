@@ -1,6 +1,9 @@
 export default {
   'GET /': 'PageController.index',
   'GET /users': 'UserController.find',
+  'GET /users/:id': 'UserController.findOne',
+  'DELETE /users/:id': 'UserController.remove',
+  'POST /users': 'UserController.create',
   'GET /roles': 'RoleController.find',
   'POST /roles': 'RoleController.create',
   'POST /commands': 'CommandController.create',

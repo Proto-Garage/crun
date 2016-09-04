@@ -4,7 +4,10 @@ export default {
     find: ['validCredentials']
   },
   UserController: {
-    find: ['validCredentials']
+    create: ['validCredentials'],
+    find: ['validCredentials'],
+    findOne: ['validCredentials', 'validObjectId'],
+    remove: ['validCredentials', 'validObjectId']
   },
   CommandController: {
     create: ['validCredentials'],
