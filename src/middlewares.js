@@ -8,7 +8,8 @@ let statusCodes = {
   INVALID_USERNAME: 403,
   INVALID_PASSWORD: 403,
   INVALID_ROLE_OPERATION: 400,
-  NOT_FOUND: 404
+  NOT_FOUND: 404,
+  FORBIDDEN: 403
 };
 
 export default [

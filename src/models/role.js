@@ -18,9 +18,10 @@ let schema = new Schema({
       type: String,
       required: true
     },
-    params: {
-      type: Schema.Types.Mixed
-    }
+    user: String,
+    role: String,
+    command: String,
+    group: String
   }],
   createdAt: Date
 });

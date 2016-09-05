@@ -73,9 +73,15 @@ global.app.started = co(function * () {
   logger('Initializing admin account.');
   let role = yield Role.findOneAndUpdate({name: process.env.ADMIN_USERNAME}, {
     operations: [
-      {name: 'CREATE_USER'},
-      {name: 'CREATE_ROLE'},
-      {name: 'ASSIGN_ROLE_OPERATION'}
+      {name: 'WRITE_USER', user: 'all'},
+      {name: 'READ_USER', user: 'all'},
+      {name: 'WRITE_ROLE', role: 'all'},
+      {name: 'READ_ROLE', role: 'all'},
+      {name: 'WRITE_COMMAND', command: 'all'},
+      {name: 'READ_COMMAND', command: 'all'},
+      {name: 'WRITE_GROUP', group: 'all'},
+      {name: 'READ_GROUP', group: 'all'},
+      {name: 'EXECUTE_GROUP', group: 'all'}
     ]
   }, {upsert: true, new: true}).exec();
 

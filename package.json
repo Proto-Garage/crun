@@ -8,7 +8,7 @@
     "start": "npm run build && env $(cat .env) node index.js",
     "flushdb": "mongo crun --eval \"db.dropDatabase()\"",
     "eslint": "eslint src/",
-    "test": "npm run flushdb && npm run build && env $(cat .env) mocha --require co-mocha --require ./index --bail dist/test/"
+    "test": "npm run eslint && npm run flushdb && npm run build && env $(cat .env) mocha --require co-mocha --require ./index --bail dist/test/"
   },
   "license": "ISC",
   "devDependencies": {

@@ -1,31 +1,31 @@
 export default {
   RoleController: {
-    create: ['validCredentials'],
-    find: ['validCredentials'],
-    findOne: ['validCredentials', 'validObjectId'],
-    remove: ['validCredentials', 'validObjectId']
+    create: ['validCredentials', 'canCreateRole'],
+    find: ['validCredentials', 'canFindRole'],
+    findOne: ['validCredentials', 'validObjectId', 'canFindSingleRole'],
+    remove: ['validCredentials', 'validObjectId', 'canRemoveUser']
   },
   UserController: {
-    create: ['validCredentials'],
-    find: ['validCredentials'],
-    findOne: ['validCredentials', 'validObjectId'],
-    remove: ['validCredentials', 'validObjectId'],
-    update: ['validCredentials', 'validObjectId']
+    create: ['validCredentials', 'canCreateUser'],
+    find: ['validCredentials', 'canFindUser'],
+    findOne: ['validCredentials', 'validObjectId', 'canFindSingleUser'],
+    remove: ['validCredentials', 'validObjectId', 'canRemoveUser'],
+    update: ['validCredentials', 'validObjectId', 'canUpdateUser']
   },
   CommandController: {
-    create: ['validCredentials'],
-    find: ['validCredentials'],
-    findOne: ['validCredentials', 'validObjectId'],
-    remove: ['validCredentials', 'validObjectId']
+    create: ['validCredentials', 'canCreateCommand'],
+    find: ['validCredentials', 'canFindCommand'],
+    findOne: ['validCredentials', 'validObjectId', 'canFindSingleCommand'],
+    remove: ['validCredentials', 'validObjectId', 'canRemoveCommand']
   },
   GroupController: {
-    create: ['validCredentials'],
-    find: ['validCredentials'],
-    findOne: ['validCredentials', 'validObjectId'],
-    remove: ['validCredentials', 'validObjectId']
+    create: ['validCredentials', 'canCreateGroup'],
+    find: ['validCredentials', 'canFindGroup'],
+    findOne: ['validCredentials', 'validObjectId', 'canFindSingleGroup'],
+    remove: ['validCredentials', 'validObjectId', 'canRemoveGroup']
   },
   ExecutionController: {
-    create: ['validCredentials'],
+    create: ['validCredentials', 'canExecuteGroup'],
     find: ['validCredentials'],
     findOne: ['validCredentials', 'validObjectId']
   }
