@@ -34,6 +34,11 @@ export let RoleController = {
 
     let role = new Role(params);
     yield role.save();
+
+    this.body = {
+      uri: url.resolve(process.env.BASE_URL, '/roles/' + role._id),
+      _id: role._id
+    };
     this.status = 201;
   },
   findOne: function * () {
