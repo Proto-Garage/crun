@@ -1,6 +1,9 @@
 import {exec} from 'child_process';
 import _ from 'lodash';
 import {EventEmitter} from 'events';
+import {v4 as uid} from 'node-uuid';
+import path from 'path';
+import fs from 'fs';
 
 export default class Command extends EventEmitter {
 
@@ -24,6 +27,7 @@ export default class Command extends EventEmitter {
     this.status = 'PENDING';
     this.stderr = new EventEmitter();
     this.stdout = new EventEmitter();
+    this.instanceId = uid();
   }
 
   run() {
@@ -45,6 +49,14 @@ export default class Command extends EventEmitter {
       });
 
       self.status = 'STARTED';
+      let stream = fs.createWriteStream(
+        path.resolve(process.env.COMMAND_LOGS_DIR, self.instanceId + '.log'), {
+          encoding: 'utf8',
+          flags: 'w'
+        }
+      );
+      self.process.stdout.pipe(stream);
+      self.process.stderr.pipe(stream);
       self.emit('status', self.status);
 
       self.process.stdout.on('data', function(data) {

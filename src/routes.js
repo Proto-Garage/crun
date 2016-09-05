@@ -16,5 +16,6 @@ export default {
   'DELETE /groups/:id': 'GroupController.remove',
   'POST /executions': 'ExecutionController.create',
   'GET /executions/:id': 'ExecutionController.findOne',
-  'GET /executions': 'ExecutionController.find'
+  'GET /executions': 'ExecutionController.find',
+  'GET /logs/:id': 'LogController.findOne'
 };

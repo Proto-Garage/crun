@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import mongoose from 'mongoose';
+import url from 'url';
 
 export default class Group {
 
@@ -31,6 +32,12 @@ export default class Group {
 
         if (obj.status === 'STARTED') {
           obj.elapsedTime = Date.now() - obj.startedAt;
+        }
+
+        if (obj.status !== 'PENDING') {
+          obj.log = url.resolve(
+            process.env.BASE_URL, '/logs/' + group.options.command.instanceId
+          );
         }
         return obj;
       }
