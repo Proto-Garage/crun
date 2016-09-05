@@ -149,6 +149,8 @@ describe('CRUN API', function() {
       it('should retrieve users', function * () {
         let result = yield request
           .get('/users')
+          .auth(admin.username, admin.password)
+          .expect(200)
           .expect(function(res) {
             expect(res.body).to.has.property('links');
             expect(res.body.links).to.has.property('self');
@@ -160,8 +162,7 @@ describe('CRUN API', function() {
               expect(item).to.has.property('createdAt');
               expect(item).to.has.property('roles');
             });
-          })
-          .expect(200);
+          });
 
         yield _.map(result.body.data, item => {
           return function * () {
