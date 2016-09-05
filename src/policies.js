@@ -9,7 +9,8 @@ export default {
     create: ['validCredentials'],
     find: ['validCredentials'],
     findOne: ['validCredentials', 'validObjectId'],
-    remove: ['validCredentials', 'validObjectId']
+    remove: ['validCredentials', 'validObjectId'],
+    update: ['validCredentials', 'validObjectId']
   },
   CommandController: {
     create: ['validCredentials'],

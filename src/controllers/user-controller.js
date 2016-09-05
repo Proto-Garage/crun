@@ -4,6 +4,16 @@ import url from 'url';
 import qs from 'querystring';
 
 export let UserController = {
+  update: function * () {
+    let params = _.pick(this.request.body, ['roles']);
+
+    let user = yield User.findByIdAndUpdate(this.params.id, params).exec();
+    if (!user) {
+      throw new AppError('NOT_FOUND',
+        `${this.params.id} user does not exist.`);
+    }
+    this.status = 200;
+  },
   remove: function * () {
     let user = yield User
       .findOneAndRemove({creator: this.user, _id: this.params.id})

@@ -3,6 +3,7 @@ export default {
   'GET /users': 'UserController.find',
   'GET /users/:id': 'UserController.findOne',
   'DELETE /users/:id': 'UserController.remove',
+  'PATCH /users/:id': 'UserController.update',
   'POST /users': 'UserController.create',
   'GET /roles': 'RoleController.find',
   'POST /roles': 'RoleController.create',

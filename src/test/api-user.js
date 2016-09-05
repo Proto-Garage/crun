@@ -28,10 +28,29 @@ describe('CRUN API', function() {
 
   describe('Users', function() {
     describe('POST /users', function() {
+      let role;
+
+      before(function * () {
+        let result = yield request
+          .post('/roles')
+          .send({name: 'test', operations: [
+            {name: 'WRITE_COMMAND'},
+            {name: 'READ_COMMAND'},
+            {name: 'WRITE_GROUP'},
+            {name: 'READ_GROUP'},
+            {name: 'EXECUTE_GROUP'}
+          ]})
+          .auth(admin.username, admin.password)
+          .expect(201);
+
+        role = result.body;
+      });
+
       it('should create new user', function * () {
         let params = {
           username: 'users_' + rand.generate(6),
-          password: rand.generate(16)
+          password: rand.generate(16),
+          roles: [role._id]
         };
 
         let result = yield request
@@ -44,8 +63,15 @@ describe('CRUN API', function() {
             expect(res.body).to.has.property('_id');
           });
 
-        let user = yield User.findById(result.body._id).exec();
+        let user = yield User
+          .findById(result.body._id)
+          .populate('roles')
+          .lean(true)
+          .exec();
+
+        console.log(user);
         expect(user).to.has.property('username', params.username);
+        expect(user).to.has.property('roles');
       });
 
       it('should return invalid request', function * () {
