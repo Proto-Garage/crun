@@ -339,7 +339,15 @@ describe('CRUN API', function() {
           .get('/executions')
           .auth(admin.username, admin.password)
           .expect(function(res) {
-            console.log(JSON.stringify(res.body, null, 2));
+            expect(res.body).to.has.property('links');
+            expect(res.body.links).to.has.property('self');
+            expect(res.body.links).to.has.property('next');
+            expect(res.body).to.has.property('data');
+            _.each(res.body.data, item => {
+              expect(item).to.has.property('group');
+              expect(item).to.has.property('createdAt');
+              expect(item).to.has.property('status');
+            });
           })
           .expect(200);
       });

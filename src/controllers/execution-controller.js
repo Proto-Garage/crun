@@ -106,8 +106,8 @@ export let ExecutionController = {
   },
   findOne: function * () {
     let execution = yield Execution
-      .findById(this.params.id)
-      .select({createdAt: 1, group: 1, status: 1, creator: this.user})
+      .findOne({_id: this.params.id, creator: this.user})
+      .select({createdAt: 1, group: 1, status: 1})
       .lean(true)
       .exec();
 

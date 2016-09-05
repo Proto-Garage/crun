@@ -69,7 +69,6 @@ describe('CRUN API', function() {
           .lean(true)
           .exec();
 
-        console.log(user);
         expect(user).to.has.property('username', params.username);
         expect(user).to.has.property('roles');
       });
