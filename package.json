@@ -1,7 +1,7 @@
 {
   "name": "crun",
-  "version": "0.0.1",
-  "description": "An API for remotely running generic commands.",
+  "version": "0.2.0",
+  "description": "An API for remotely running commands.",
   "main": "index.js",
   "scripts": {
     "build": "rm -rf dist/ && babel --out-dir dist/ src/",
