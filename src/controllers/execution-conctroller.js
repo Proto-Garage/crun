@@ -107,7 +107,7 @@ export let ExecutionController = {
   findOne: function * () {
     let execution = yield Execution
       .findById(this.params.id)
-      .select({createdAt: 1, group: 1, status: 1})
+      .select({createdAt: 1, group: 1, status: 1, creator: this.user})
       .lean(true)
       .exec();
 
@@ -128,9 +128,15 @@ export let ExecutionController = {
     };
   },
   find: function * () {
+    let limit = Number.parseInt(this.query.limit, 10) || 10;
+    let skip = Number.parseInt(this.query.skip, 10) || 0;
+
     let data = yield Execution
-      .find()
+      .find({creator: this.user})
       .select({createdAt: 1, group: 1, status: 1})
+      .sort({createdAt: -1})
+      .skip(skip)
+      .limit(limit)
       .lean(true)
       .exec();
 
@@ -142,9 +148,15 @@ export let ExecutionController = {
 
     this.body = {
       links: {
-        self: url.resolve(process.env.BASE_URL, '/execution')
+        self: url.resolve(process.env.BASE_URL, '/executions') +
+          '?' + qs.stringify({limit, skip}),
+        next: url.resolve(process.env.BASE_URL, '/executions') +
+          '?' + qs.stringify({limit, skip: limit})
       },
-      data: data
+      data: _.map(data, item => {
+        item.uri = url.resolve(process.env.BASE_URL, '/executions/' + item._id);
+        return item;
+      })
     };
   }
 };

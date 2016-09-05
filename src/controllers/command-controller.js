@@ -50,7 +50,8 @@ export let CommandController = {
 
     this.body = {
       links: {
-        self: url.resolve(process.env.BASE_URL, '/commands'),
+        self: url.resolve(process.env.BASE_URL, '/commands') +
+          '?' + qs.stringify({limit, skip}),
         next: url.resolve(process.env.BASE_URL, '/commands') +
           '?' + qs.stringify({limit, skip: limit})
       },

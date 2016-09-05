@@ -70,8 +70,9 @@ export let UserController = {
 
     this.body = {
       links: {
-        self: url.resolve(process.env.BASE_URL, '/commands'),
-        next: url.resolve(process.env.BASE_URL, '/commands') +
+        self: url.resolve(process.env.BASE_URL, '/users') +
+          '?' + qs.stringify({limit, skip}),
+        next: url.resolve(process.env.BASE_URL, '/users') +
           '?' + qs.stringify({limit, skip: limit})
       },
       data: _.map(users, item => {
@@ -79,8 +80,5 @@ export let UserController = {
         return item;
       })
     };
-  },
-  update: function * () {
-
   }
 };

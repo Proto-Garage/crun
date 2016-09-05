@@ -6,6 +6,8 @@ export default {
   'POST /users': 'UserController.create',
   'GET /roles': 'RoleController.find',
   'POST /roles': 'RoleController.create',
+  'GET /roles/:id': 'RoleController.findOne',
+  'DELETE /roles/:id': 'RoleController.remove',
   'POST /commands': 'CommandController.create',
   'GET /commands': 'CommandController.find',
   'GET /commands/:id': 'CommandController.findOne',

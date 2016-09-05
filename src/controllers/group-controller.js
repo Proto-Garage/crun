@@ -66,7 +66,8 @@ export let GroupController = {
 
     this.body = {
       links: {
-        self: url.resolve(process.env.BASE_URL, '/groups'),
+        self: url.resolve(process.env.BASE_URL, '/groups') +
+          '?' + qs.stringify({limit, skip}),
         next: url.resolve(process.env.BASE_URL, '/groups') +
           '?' + qs.stringify({limit, skip: limit})
       },

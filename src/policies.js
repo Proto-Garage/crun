@@ -1,7 +1,9 @@
 export default {
   RoleController: {
     create: ['validCredentials'],
-    find: ['validCredentials']
+    find: ['validCredentials'],
+    findOne: ['validCredentials', 'validObjectId'],
+    remove: ['validCredentials', 'validObjectId']
   },
   UserController: {
     create: ['validCredentials'],

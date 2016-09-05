@@ -17,10 +17,21 @@ let schema = new Schema({
     name: {
       type: String,
       required: true
+    },
+    params: {
+      type: Schema.Types.Mixed
     }
-  }]
+  }],
+  createdAt: Date
 });
 
-schema.index({name: 1}, {unique: true});
+schema.pre('save', function(next) {
+  this.createdAt = new Date();
+  next();
+});
+schema.index({name: 1});
+schema.index({creator: 1});
+schema.index({createdAt: -1});
+schema.index({'operations.name': 1});
 
 export let Role = db.model('Role', schema);

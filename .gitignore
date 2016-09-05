@@ -2,3 +2,4 @@ node_modules/
 .vscode/
 dist/
 credentials.txt
+files/
