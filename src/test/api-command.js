@@ -154,5 +154,28 @@ describe('CRUN API', function() {
           .expect(404);
       });
     });
+    describe('PATCH /commands/:id', function() {
+      let command;
+
+      before(function * () {
+        let res = yield request
+          .post('/commands')
+          .send({name: 'sleepy 2', command: 'sleep 2'})
+          .auth(admin.username, admin.password)
+          .expect(201);
+
+        command = res.body;
+      });
+      it('should retrieve single command', function * () {
+        yield request
+          .patch('/commands/' + command._id)
+          .send({name: 'updated'})
+          .auth(admin.username, admin.password)
+          .expect(200);
+
+        let dbCommand = yield Command.findById(command._id).exec();
+        expect(dbCommand.name).to.be.equal('updated');
+      });
+    });
   });
 });

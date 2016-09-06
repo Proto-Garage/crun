@@ -16,7 +16,8 @@ export default {
     create: ['validCredentials', 'canCreateCommand'],
     find: ['validCredentials', 'canFindCommand'],
     findOne: ['validCredentials', 'validObjectId', 'canFindSingleCommand'],
-    remove: ['validCredentials', 'validObjectId', 'canRemoveCommand']
+    remove: ['validCredentials', 'validObjectId', 'canRemoveCommand'],
+    update: ['validCredentials', 'validObjectId', 'canUpdateCommand']
   },
   GroupController: {
     create: ['validCredentials', 'canCreateGroup'],

@@ -22,7 +22,7 @@ let schema = new Schema({
   createdAt: Date,
   timeout: {
     type: Number,
-    default: 60000
+    default: 180000
   }
 });
 

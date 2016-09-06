@@ -13,6 +13,7 @@ export default {
   'GET /commands': 'CommandController.find',
   'GET /commands/:id': 'CommandController.findOne',
   'DELETE /commands/:id': 'CommandController.remove',
+  'PATCH /commands/:id': 'CommandController.update',
   'POST /groups': 'GroupController.create',
   'GET /groups': 'GroupController.find',
   'GET /groups/:id': 'GroupController.findOne',

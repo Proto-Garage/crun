@@ -4,6 +4,26 @@ import url from 'url';
 import qs from 'querystring';
 
 export let CommandController = {
+  update: function * () {
+    let params = _.pick(this.request.body, [
+      'name',
+      'command',
+      'cwd',
+      'timeout',
+      'env'
+    ]);
+
+    let command = yield Command
+      .findOneAndUpdate({_id: this.params.id, creator: this.user}, params)
+      .exec();
+
+    if (!command) {
+      throw new AppError('NOT_FOUND',
+        `${this.params.id} command does not exist.`);
+    }
+
+    this.status = 200;
+  },
   remove: function * () {
     let command = yield Command
       .findOneAndRemove({creator: this.user, _id: this.params.id})
