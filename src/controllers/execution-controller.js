@@ -42,7 +42,7 @@ export let ExecutionController = {
       return function * () {
         let command = yield Command
           .findById(id)
-          .select({name: 1, command: 1, env: 1, cwd: 1})
+          .select({name: 1, command: 1, env: 1, cwd: 1, timeout: 1})
           .lean(true)
           .exec();
 
@@ -50,7 +50,6 @@ export let ExecutionController = {
           throw new AppError('INVALID_REQUEST',
             `${id} command does not exist.`);
         }
-        command.status =
         commands[id] = command;
       };
     });
