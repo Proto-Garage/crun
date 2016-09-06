@@ -22,7 +22,8 @@ export default {
     create: ['validCredentials', 'canCreateGroup'],
     find: ['validCredentials', 'canFindGroup'],
     findOne: ['validCredentials', 'validObjectId', 'canFindSingleGroup'],
-    remove: ['validCredentials', 'validObjectId', 'canRemoveGroup']
+    remove: ['validCredentials', 'validObjectId', 'canRemoveGroup'],
+    update: ['validCredentials', 'validObjectId', 'canUpdateGroup']
   },
   ExecutionController: {
     create: ['validCredentials', 'canExecuteGroup'],

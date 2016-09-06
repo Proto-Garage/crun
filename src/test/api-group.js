@@ -358,5 +358,57 @@ describe('CRUN API', function() {
         expect(yield Group.findById(group._id).exec()).to.be.equal(null);
       });
     });
+
+    describe('PATCH /groups/:id', function() {
+      let group;
+
+      before(function * () {
+        let result = yield request
+          .post('/commands')
+          .send({name: 'sleepy-head-5', command: 'sleep 2'})
+          .auth(admin.username, admin.password)
+          .expect(201);
+
+        result = yield request
+          .post('/groups')
+          .send({
+            name: 'test group 3',
+            queue: 'test',
+            group: {
+              type: 'command',
+              _id: result.body._id
+            }
+          })
+          .auth(admin.username, admin.password)
+          .expect(201);
+
+        group = result.body;
+      });
+
+      it('should update single group', function * () {
+        yield request
+          .patch('/groups/' + group._id)
+          .send({
+            name: 'updated',
+            group: {
+              type: 'serial',
+              groups: [{
+                type: 'command',
+                _id: group._id
+              }, {
+                type: 'command',
+                _id: group._id
+              }]
+            }
+          })
+          .auth(admin.username, admin.password)
+          .expect(200);
+
+        let dbGroup = yield Group.findById(group._id).exec();
+        expect(dbGroup.name).to.equal('updated');
+        expect(dbGroup.queue).to.equal('test');
+        expect(dbGroup.group.type).to.equal('serial');
+      });
+    });
   });
 });

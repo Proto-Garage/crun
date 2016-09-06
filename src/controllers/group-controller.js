@@ -5,6 +5,24 @@ import {isValidGroup, extractCommands} from '../lib/group';
 import qs from 'querystring';
 
 export let GroupController = {
+  update: function * () {
+    let params = _.pick(this.request.body, [
+      'name',
+      'queue',
+      'group'
+    ]);
+
+    let group = yield Group
+      .findOneAndUpdate({_id: this.params.id, creator: this.user}, params)
+      .exec();
+
+    if (!group) {
+      throw new AppError('NOT_FOUND',
+        `${this.params.id} group does not exist.`);
+    }
+
+    this.status = 200;
+  },
   remove: function * () {
     let group = yield Group
       .findOneAndRemove({creator: this.user, _id: this.params.id})

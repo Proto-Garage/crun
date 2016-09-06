@@ -17,6 +17,7 @@ export default {
   'GET /groups': 'GroupController.find',
   'GET /groups/:id': 'GroupController.findOne',
   'DELETE /groups/:id': 'GroupController.remove',
+  'PATCH /groups/:id': 'GroupController.update',
   'POST /executions': 'ExecutionController.create',
   'GET /executions/:id': 'ExecutionController.findOne',
   'GET /executions': 'ExecutionController.find',
