@@ -50,7 +50,7 @@ export let CommandController = {
     yield command.save();
 
     this.body = {
-      uri: url.resolve(process.env.BASE_URL, '/commands/' + command._id),
+      uri: url.resolve(this.baseUrl, '/commands/' + command._id),
       _id: command._id
     };
     this.status = 201;
@@ -70,13 +70,13 @@ export let CommandController = {
 
     this.body = {
       links: {
-        self: url.resolve(process.env.BASE_URL, '/commands') +
+        self: url.resolve(this.baseUrl, '/commands') +
           '?' + qs.stringify({limit, skip}),
-        next: url.resolve(process.env.BASE_URL, '/commands') +
+        next: url.resolve(this.baseUrl, '/commands') +
           '?' + qs.stringify({limit, skip: limit})
       },
       data: _.map(commands, item => {
-        item.uri = url.resolve(process.env.BASE_URL, '/commands/' + item._id);
+        item.uri = url.resolve(this.baseUrl, '/commands/' + item._id);
         return item;
       })
     };
@@ -95,7 +95,7 @@ export let CommandController = {
 
     this.body = {
       links: {
-        self: url.resolve(process.env.BASE_URL, '/commands/' + this.params.id)
+        self: url.resolve(this.baseUrl, '/commands/' + this.params.id)
       },
       data: command
     };

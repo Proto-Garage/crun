@@ -39,7 +39,7 @@ export let UserController = {
     yield user.save();
 
     this.body = {
-      uri: url.resolve(process.env.BASE_URL, '/users/' + user._id),
+      uri: url.resolve(this.baseUrl, '/users/' + user._id),
       _id: user._id
     };
 
@@ -59,7 +59,7 @@ export let UserController = {
 
     this.body = {
       links: {
-        self: url.resolve(process.env.BASE_URL, '/users/' + this.params.id)
+        self: url.resolve(this.baseUrl, '/users/' + this.params.id)
       },
       data: user
     };
@@ -80,13 +80,13 @@ export let UserController = {
 
     this.body = {
       links: {
-        self: url.resolve(process.env.BASE_URL, '/users') +
+        self: url.resolve(this.baseUrl, '/users') +
           '?' + qs.stringify({limit, skip}),
-        next: url.resolve(process.env.BASE_URL, '/users') +
+        next: url.resolve(this.baseUrl, '/users') +
           '?' + qs.stringify({limit, skip: limit})
       },
       data: _.map(users, item => {
-        item.uri = url.resolve(process.env.BASE_URL, '/users/' + item._id);
+        item.uri = url.resolve(this.baseUrl, '/users/' + item._id);
         return item;
       })
     };

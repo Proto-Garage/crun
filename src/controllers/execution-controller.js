@@ -75,7 +75,7 @@ export let ExecutionController = {
     executions[executionId] = group;
 
     this.body = {
-      uri: url.resolve(process.env.BASE_URL, '/executions/' + execution._id),
+      uri: url.resolve(this.baseUrl, '/executions/' + execution._id),
       _id: executionId
     };
     this.status = 201;
@@ -121,7 +121,7 @@ export let ExecutionController = {
 
     this.body = {
       links: {
-        self: url.resolve(process.env.BASE_URL, '/execution/' + this.params.id)
+        self: url.resolve(this.baseUrl, '/execution/' + this.params.id)
       },
       data: execution
     };
@@ -147,13 +147,13 @@ export let ExecutionController = {
 
     this.body = {
       links: {
-        self: url.resolve(process.env.BASE_URL, '/executions') +
+        self: url.resolve(this.baseUrl, '/executions') +
           '?' + qs.stringify({limit, skip}),
-        next: url.resolve(process.env.BASE_URL, '/executions') +
+        next: url.resolve(this.baseUrl, '/executions') +
           '?' + qs.stringify({limit, skip: limit})
       },
       data: _.map(data, item => {
-        item.uri = url.resolve(process.env.BASE_URL, '/executions/' + item._id);
+        item.uri = url.resolve(this.baseUrl, '/executions/' + item._id);
         return item;
       })
     };

@@ -64,7 +64,7 @@ export let GroupController = {
     yield group.save();
 
     this.body = {
-      uri: url.resolve(process.env.BASE_URL, '/groups/' + group._id),
+      uri: url.resolve(this.baseUrl, '/groups/' + group._id),
       _id: group._id
     };
     this.status = 201;
@@ -84,13 +84,13 @@ export let GroupController = {
 
     this.body = {
       links: {
-        self: url.resolve(process.env.BASE_URL, '/groups') +
+        self: url.resolve(this.baseUrl, '/groups') +
           '?' + qs.stringify({limit, skip}),
-        next: url.resolve(process.env.BASE_URL, '/groups') +
+        next: url.resolve(this.baseUrl, '/groups') +
           '?' + qs.stringify({limit, skip: limit})
       },
       data: _.map(groups, item => {
-        item.uri = url.resolve(process.env.BASE_URL, '/groups/' + item._id);
+        item.uri = url.resolve(this.baseUrl, '/groups/' + item._id);
         return item;
       })
     };
@@ -109,7 +109,7 @@ export let GroupController = {
 
     this.body = {
       links: {
-        self: url.resolve(process.env.BASE_URL, '/groups/' + this.params.id)
+        self: url.resolve(this.baseUrl, '/groups/' + this.params.id)
       },
       data: group
     };

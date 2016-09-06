@@ -14,10 +14,20 @@ export let validCredentials = function * (next) {
     throw new AppError('UNAUTHORIZED', 'Unauthorized.');
   }
 
-  this.user = yield User.verifyCredentials({
+  this.credentials = {
     username: match[1],
     password: match[2]
-  });
+  };
+
+  this.user = yield User.verifyCredentials(this.credentials);
+
+  let baseUrl = process.env.BASE_URL.split('://');
+  this.baseUrl = [
+    baseUrl[0],
+    '://',
+    `${this.credentials.username}:${this.credentials.password}@`,
+    baseUrl[1]
+  ].join('');
 
   yield next;
 };

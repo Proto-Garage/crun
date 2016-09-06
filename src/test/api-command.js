@@ -2,6 +2,9 @@
 /* eslint max-nested-callbacks: ["error", 6]*/
 import {expect} from 'chai';
 import _ from 'lodash';
+import mongoose from 'mongoose';
+
+let ObjectId = mongoose.Types.ObjectId;
 
 let request;
 
@@ -85,7 +88,7 @@ describe('CRUN API', function() {
       });
     });
     describe('GET /commands/:id', function() {
-      let uri;
+      let command;
       before(function * () {
         let res = yield request
           .post('/commands')
@@ -93,11 +96,11 @@ describe('CRUN API', function() {
           .auth(admin.username, admin.password)
           .expect(201);
 
-        uri = res.body.uri.replace(process.env.BASE_URL, '');
+        command = res.body;
       });
       it('should retrieve single command', function * () {
         yield request
-          .get(uri)
+          .get('/commands/' + command._id)
           .auth(admin.username, admin.password)
           .expect(function(res) {
             expect(res.body).to.has.property('links');
@@ -112,7 +115,7 @@ describe('CRUN API', function() {
       });
       it('should return 404', function * () {
         yield request
-          .get(uri + '0')
+          .get('/commands/' + new ObjectId().toHexString())
           .auth(admin.username, admin.password)
           .expect(function(res) {
             expect(res.body).to.has.property('code', 'NOT_FOUND');
@@ -121,32 +124,28 @@ describe('CRUN API', function() {
       });
     });
     describe('DELETE /commands/:id', function() {
-      let uri;
-      let _id;
+      let command;
       before(function * () {
         let res = yield request
           .post('/commands')
           .send({name: 'sleepy', command: 'sleep 2'})
           .auth(admin.username, admin.password)
-          .expect(function(res) {
-            _id = res.body._id;
-          })
           .expect(201);
 
-        uri = res.body.uri.replace(process.env.BASE_URL, '');
+        command = res.body;
       });
       it('should retrieve single command', function * () {
         yield request
-          .delete(uri)
+          .delete('/commands/' + command._id)
           .auth(admin.username, admin.password)
           .expect(200);
 
-        let command = yield Command.findById(_id).exec();
-        expect(command).to.be.equal(null);
+        let dbCommand = yield Command.findById(command._id).exec();
+        expect(dbCommand).to.be.equal(null);
       });
       it('should return 404', function * () {
         yield request
-          .get(uri + '0')
+          .get('/commands/' + new ObjectId().toHexString())
           .auth(admin.username, admin.password)
           .expect(function(res) {
             expect(res.body).to.has.property('code', 'NOT_FOUND');

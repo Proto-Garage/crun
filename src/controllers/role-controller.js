@@ -36,7 +36,7 @@ export let RoleController = {
     yield role.save();
 
     this.body = {
-      uri: url.resolve(process.env.BASE_URL, '/roles/' + role._id),
+      uri: url.resolve(this.baseUrl, '/roles/' + role._id),
       _id: role._id
     };
     this.status = 201;
@@ -59,7 +59,7 @@ export let RoleController = {
 
     this.body = {
       links: {
-        self: url.resolve(process.env.BASE_URL, '/roles/' + this.params.id)
+        self: url.resolve(this.baseUrl, '/roles/' + this.params.id)
       },
       data: role
     };
@@ -83,13 +83,13 @@ export let RoleController = {
 
     this.body = {
       links: {
-        self: url.resolve(process.env.BASE_URL, '/roles') +
+        self: url.resolve(this.baseUrl, '/roles') +
           '?' + qs.stringify({limit, skip}),
-        next: url.resolve(process.env.BASE_URL, '/roles') +
+        next: url.resolve(this.baseUrl, '/roles') +
           '?' + qs.stringify({limit, skip: limit})
       },
       data: _.map(roles, item => {
-        item.uri = url.resolve(process.env.BASE_URL, '/roles/' + item._id);
+        item.uri = url.resolve(this.baseUrl, '/roles/' + item._id);
         return item;
       })
     };

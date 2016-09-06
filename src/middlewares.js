@@ -61,5 +61,9 @@ export default [
         this.status = 500;
       }
     }
+  },
+  function * setBaseUrl(next) {
+    this.baseUrl = process.env.BASE_URL;
+    yield next;
   }
 ];
