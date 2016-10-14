@@ -33,6 +33,11 @@ export let ExecutionController = {
         `${params.group} does not exist.`);
     }
 
+    if (!group.enabled) {
+      throw new AppError('INVALID_REQUEST',
+        `${params.group} is disabled.`);
+    }
+
     let queue = group.queue;
     group = group.group;
 
