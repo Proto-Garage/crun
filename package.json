@@ -40,7 +40,9 @@
     "lodash": "^4.15.0",
     "mongoose": "^4.5.10",
     "node-uuid": "^1.4.7",
-    "rand-token": "^0.2.1"
+    "rand-token": "^0.2.1",
+    "react": "^15.3.2",
+    "react-dom": "^15.3.2"
   },
   "eslintConfig": {
     "extends": "google",

@@ -13,6 +13,10 @@ let schema = new Schema({
     ref: 'User',
     required: true
   },
+  enabled: {
+    type: Boolean,
+    default: true
+  },
   group: {},
   queue: {
     type: String,
@@ -28,6 +32,7 @@ schema.pre('save', function(next) {
 
 schema.index({queue: 1});
 schema.index({creator: 1});
+schema.index({enabled: 1});
 schema.index({createdAt: -1});
 schema.index({name: 1});
 
