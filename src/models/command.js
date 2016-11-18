@@ -17,6 +17,10 @@ let schema = new Schema({
     ref: 'User',
     required: true
   },
+  enabled: {
+    type: Boolean,
+    default: true
+  },
   cwd: String,
   env: {},
   createdAt: Date,
@@ -32,6 +36,7 @@ schema.pre('save', function(next) {
 });
 
 schema.index({creator: 1});
+schema.index({enabled: 1});
 schema.index({createdAt: -1});
 schema.index({name: 1});
 

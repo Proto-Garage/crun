@@ -10,7 +10,8 @@ export let CommandController = {
       'command',
       'cwd',
       'timeout',
-      'env'
+      'env',
+      'enabled'
     ]);
 
     let command = yield Command
@@ -42,7 +43,8 @@ export let CommandController = {
       'command',
       'env',
       'cwd',
-      'timeout'
+      'timeout',
+      'enabled'
     ]);
     params.creator = this.user;
 
@@ -61,7 +63,8 @@ export let CommandController = {
 
     let commands = yield Command
       .find({creator: this.user})
-      .select({name: 1, command: 1, env: 1, cwd: 1, createdAt: 1, timeout: 1})
+      .select({name: 1, command: 1, env: 1, cwd: 1,
+        createdAt: 1, timeout: 1, enabled: 1})
       .sort({createdAt: -1})
       .skip(skip)
       .limit(limit)
@@ -84,7 +87,8 @@ export let CommandController = {
   findOne: function * () {
     let command = yield Command
       .findOne({_id: this.params.id, creator: this.user})
-      .select({name: 1, command: 1, env: 1, cwd: 1, createdAt: 1, timeout: 1})
+      .select({name: 1, command: 1, env: 1, cwd: 1,
+        createdAt: 1, timeout: 1, enabled: 1})
       .lean(true)
       .exec();
 

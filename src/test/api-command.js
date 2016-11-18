@@ -82,6 +82,7 @@ describe('CRUN API', function() {
               expect(item).to.has.property('name');
               expect(item).to.has.property('timeout');
               expect(item).to.has.property('command');
+              expect(item).to.has.property('enabled');
             });
           })
           .expect(200);
@@ -110,6 +111,7 @@ describe('CRUN API', function() {
             expect(res.body.data).to.has.property('name');
             expect(res.body.data).to.has.property('timeout');
             expect(res.body.data).to.has.property('command');
+            expect(res.body.data).to.has.property('enabled');
           })
           .expect(200);
       });
