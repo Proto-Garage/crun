@@ -1,6 +1,7 @@
 ## User
-A default user called `admin` is created when `crun` is started for the first time. The `admin` user
-may be used to created
+A default user called `admin` is created when `crun` is started for the first time. The `admin` user's password is set on the
+`config.json` file.
+
 ### Attributes
 * `username (String)`
 * `password (String)`
@@ -13,5 +14,4 @@ A `User` can do the following operations:
 * Create a `Role`
 * Define a `Command`
 * Define a `Group`
-
-### Attributes
+* Execute a `Group`
