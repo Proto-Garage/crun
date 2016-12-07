@@ -12,7 +12,8 @@ let tasks = [
   'bootstrap-css-lib',
   'bootstrap-fonts-lib',
   'font-awesome-lib.js',
-  'font-awesome-fonts-lib'
+  'font-awesome-fonts-lib',
+  'select2-css-lib'
 ];
 
 tasks.forEach(function(name) {
@@ -38,5 +39,6 @@ gulp.task('default', [
   'bootstrap-css-lib',
   'bootstrap-fonts-lib',
   'font-awesome-lib.js',
-  'font-awesome-fonts-lib'
+  'font-awesome-fonts-lib',
+  'select2-css-lib'
 ]);
