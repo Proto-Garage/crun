@@ -61,10 +61,26 @@ export let CommandController = {
     let limit = Number.parseInt(this.query.limit, 10) || 10;
     let skip = Number.parseInt(this.query.skip, 10) || 0;
 
+    let fields = [
+      'name',
+      'command',
+      'env',
+      'cwd',
+      'createdAt',
+      'timeout',
+      'enabled'
+    ];
+
+    if (this.query.fields) {
+      fields = _.intersection(fields, this.query.fields.split(','));
+    }
+
     let commands = yield Command
       .find({creator: this.user})
-      .select({name: 1, command: 1, env: 1, cwd: 1,
-        createdAt: 1, timeout: 1, enabled: 1})
+      .select(_.reduce(fields, (accum, field) => {
+        accum[field] = 1;
+        return accum;
+      }, {}))
       .sort({createdAt: -1})
       .skip(skip)
       .limit(limit)
@@ -85,10 +101,26 @@ export let CommandController = {
     };
   },
   findOne: function * () {
+    let fields = [
+      'name',
+      'command',
+      'env',
+      'cwd',
+      'createdAt',
+      'timeout',
+      'enabled'
+    ];
+
+    if (this.query.fields) {
+      fields = _.intersection(fields, this.query.fields.split(','));
+    }
+
     let command = yield Command
       .findOne({_id: this.params.id, creator: this.user})
-      .select({name: 1, command: 1, env: 1, cwd: 1,
-        createdAt: 1, timeout: 1, enabled: 1})
+      .select(_.reduce(fields, (accum, field) => {
+        accum[field] = 1;
+        return accum;
+      }, {}))
       .lean(true)
       .exec();
 
