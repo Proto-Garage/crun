@@ -1,13 +1,23 @@
 var browserify = require('browserify');
 var source = require('vinyl-source-stream');
+var gulp = require('gulp');
 
-var gulp = require('./gulp')([
+let tasks = [
   'react',
   'redux-lib',
   'react-lib',
   'react-dom-lib',
-  'index'
-]);
+  'index',
+  'bootstrap-js-lib',
+  'bootstrap-css-lib',
+  'bootstrap-fonts-lib',
+  'font-awesome-lib.js',
+  'font-awesome-fonts-lib'
+];
+
+tasks.forEach(function(name) {
+  gulp.task(name, require('./gulp/tasks/' + name));
+});
 
 gulp.task('browserify', [
   'react'
@@ -23,5 +33,10 @@ gulp.task('default', [
   'redux-lib',
   'react-lib',
   'react-dom-lib',
-  'index'
+  'index',
+  'bootstrap-js-lib',
+  'bootstrap-css-lib',
+  'bootstrap-fonts-lib',
+  'font-awesome-lib.js',
+  'font-awesome-fonts-lib'
 ]);
