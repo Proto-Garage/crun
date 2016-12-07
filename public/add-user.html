@@ -9,6 +9,7 @@
 
     <!-- Bootstrap -->
     <link href="dist/css/lib/bootstrap.css" rel="stylesheet">
+    <link href="dist/css/lib/select2.css" rel="stylesheet">
     <link rel="stylesheet" href="dist/css/lib/font-awesome.css">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -91,12 +92,20 @@
                         <div class="form-group">
                             <label for="" class="control-label col-sm-2">Roles</label>
                             <div class="col-sm-4">
-                                <select name="role" id="" class="form-control">
+                                <select name="role" id="" class="form-control select2" multiple="multiple">
                                     <option value="">Admin</option>
                                     <option value="">Frontend</option>
                                     <option value="">Staging</option>
                                     <option value="">One Wallet</option>
                                 </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-2">
+                                <button class="btn btn-default">Cancel</button>
+                            </div>
+                            <div class="col-sm-2 pull-right">
+                                <button class="btn btn-success"><i class="fa fa-save"></i> Save</button>
                             </div>
                         </div>
                     </form>
@@ -117,5 +126,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="dist/js/lib/bootstrap.js"></script>
+    <script src="dist/js/lib/select2.js"></script>
+    <script src="src/js/custom.js"></script>
   </body>
 </html>
