@@ -1,7 +1,7 @@
 import {exec} from 'child_process';
 import _ from 'lodash';
 import {EventEmitter} from 'events';
-import {v4 as uid} from 'node-uuid';
+import {v4 as uid} from 'uuid';
 import path from 'path';
 import fs from 'fs';
 
