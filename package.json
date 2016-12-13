@@ -8,7 +8,7 @@
     "start": "npm run build && env $(cat .env) node index.js",
     "flushdb": "mongo crun --eval \"db.dropDatabase()\"",
     "eslint": "eslint src/",
-    "mocha": "env $(cat .env) mocha --require co-mocha --require ./index --bail dist/test/",
+    "mocha": "env $(cat .env) mocha --require co-mocha --require ./index --require babel-polyfill --bail dist/test/",
     "test": "npm run nsp && npm run eslint && npm run flushdb && npm run build && npm run mocha",
     "nsp": "nsp check --output summary"
   },
@@ -16,7 +16,6 @@
   "devDependencies": {
     "babel-cli": "^6.14.0",
     "babel-core": "^6.18.2",
-    "babel-plugin-transform-regenerator": "^6.20.0",
     "babel-preset-es2015": "^6.18.0",
     "babel-preset-react": "^6.16.0",
     "browserify": "^13.1.1",
@@ -37,6 +36,7 @@
     "vinyl-source-stream": "^1.1.0"
   },
   "dependencies": {
+    "babel-polyfill": "^6.20.0",
     "bcryptjs": "^2.3.0",
     "bluebird": "^3.4.3",
     "bootstrap": "^3.3.7",

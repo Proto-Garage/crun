@@ -2,8 +2,5 @@
   "presets": [
     "es2015"
   ],
-  "plugins": [
-    "transform-regenerator"
-  ],
   "retainLines": true
 }

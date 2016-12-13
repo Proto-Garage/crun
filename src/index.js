@@ -1,4 +1,5 @@
 /* globals User, Role, Policies */
+import 'babel-polyfill';
 import _ from 'lodash';
 import koa from 'koa';
 import * as Util from './utilities';
