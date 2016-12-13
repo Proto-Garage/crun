@@ -3,4 +3,4 @@ machine:
     Etc/UTC
   node:
     version:
-      4.4.5
+      6.9.2
