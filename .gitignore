@@ -4,3 +4,4 @@ dist/
 credentials.txt
 files/
 public/dist/
+*.log
