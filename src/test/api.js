@@ -1,6 +1,7 @@
-/* globals app */
+/* globals app, User */
 /* eslint max-nested-callbacks: ["error", 6]*/
 import {expect} from 'chai';
+import rand from 'rand-token';
 
 let request;
 
@@ -29,7 +30,39 @@ describe('CRUN API', function() {
     });
   });
 
-  describe('Authentication', function() {
+  describe('Authentication (POST)', function() {
+    let user;
+
+    before(function * () {
+      user = new User({
+        username: 'test_user_' + rand.generate(8),
+        password: rand.generate(26)
+      });
+      yield user.save();
+    });
+
+    after(function * () {
+      yield User.remove(user);
+    });
+
+    describe('Given valid credentials', function() {
+      it('should return access token and refresh token', function * () {
+        yield request
+          .post('/authenticate')
+          .send({
+            username: user.username,
+            password: user.rawPassword
+          })
+          .expect(function(res) {
+            expect(res.body).to.has.property('refresh');
+            expect(res.body).to.has.property('access');
+          })
+          .expect(200);
+      });
+    });
+  });
+
+  describe('Authentication (BASIC)', function() {
     describe('Given no authorization header', function() {
       it('should return UNAUTHORIZED', function * () {
         yield request
@@ -47,9 +80,9 @@ describe('CRUN API', function() {
           .get('/roles')
           .auth(admin.username + '0', admin.password)
           .expect(function(res) {
-            expect(res.body).to.has.property('code', 'INVALID_USERNAME');
+            expect(res.body).to.has.property('code', 'UNAUTHORIZED');
           })
-          .expect(403);
+          .expect(401);
       });
 
       it('should return INVALID_PASSWORD', function * () {
@@ -57,9 +90,9 @@ describe('CRUN API', function() {
           .get('/roles')
           .auth(admin.username, admin.password + '0')
           .expect(function(res) {
-            expect(res.body).to.has.property('code', 'INVALID_PASSWORD');
+            expect(res.body).to.has.property('code', 'UNAUTHORIZED');
           })
-          .expect(403);
+          .expect(401);
       });
     });
     describe('Given valid credentials', function() {

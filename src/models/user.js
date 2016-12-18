@@ -26,6 +26,7 @@ schema.pre('save', function(next) {
   let self = this;
   this.createdAt = new Date();
   co(function * () {
+    self.rawPassword = self.password;
     self.password = yield Util.bcryptHash(self.password);
   }).then(next).catch(next);
 });
@@ -39,8 +40,8 @@ schema.statics.verifyCredentials = function * (credentials) {
 
   if (!user) {
     throw new AppError(
-      'INVALID_USERNAME',
-      `${credentials.username} username is invalid.`
+      'UNAUTHORIZED',
+      `Invalid username or password.`
     );
   }
 
@@ -49,8 +50,8 @@ schema.statics.verifyCredentials = function * (credentials) {
 
   if (!validPassword) {
     throw new AppError(
-      'INVALID_PASSWORD',
-      `${credentials.password} password is invalid.`
+      'UNAUTHORIZED',
+      `Invalid username or password.`
     );
   }
 
