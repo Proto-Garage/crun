@@ -2,16 +2,16 @@
 import _ from 'lodash';
 
 export let canRemoveUser = function * (next) {
-  let operations = _(this.user.roles)
-    .map('operations')
+  let permissions = _(this.user.roles)
+    .map('permissions')
     .flatten()
-    .filter({name: 'WRITE_USER'})
+    .filter({operation: 'WRITE_USER'})
     .filter(item => {
       return item.user === 'all' || item.user === this.params.id;
     })
     .value();
 
-  if (operations.length === 0) {
+  if (permissions.length === 0) {
     throw new AppError('FORBIDDEN', `Cannot remove user ${this.params.id}.`);
   }
   yield next;

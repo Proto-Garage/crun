@@ -37,16 +37,16 @@ describe('CRUN API', function() {
     before(function * () {
       role = new Role({
         name: 'admin',
-        operations: [
-          {name: 'WRITE_USER', user: 'all'},
-          {name: 'READ_USER', user: 'all'},
-          {name: 'WRITE_ROLE', role: 'all'},
-          {name: 'READ_ROLE', role: 'all'},
-          {name: 'WRITE_COMMAND', command: 'all'},
-          {name: 'READ_COMMAND', command: 'all'},
-          {name: 'WRITE_GROUP', group: 'all'},
-          {name: 'READ_GROUP', group: 'all'},
-          {name: 'EXECUTE_GROUP', group: 'all'}
+        permissions: [
+          {operation: 'WRITE_USER', user: 'all'},
+          {operation: 'READ_USER', user: 'all'},
+          {operation: 'WRITE_ROLE', role: 'all'},
+          {operation: 'READ_ROLE', role: 'all'},
+          {operation: 'WRITE_COMMAND', command: 'all'},
+          {operation: 'READ_COMMAND', command: 'all'},
+          {operation: 'WRITE_GROUP', group: 'all'},
+          {operation: 'READ_GROUP', group: 'all'},
+          {operation: 'EXECUTE_GROUP', group: 'all'}
         ]
       });
       yield role.save();

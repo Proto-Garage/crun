@@ -30,9 +30,12 @@ describe('CRUN API', function() {
       it('should return INVALID_ROLE_OPERATION', function * () {
         yield request
           .post('/roles')
-          .send({name: 'staging', operations: [{name: 'CREATE_SOMETHING'}]})
+          .send({name: 'staging', permissions: [
+            {operation: 'CREATE_SOMETHING'}
+          ]})
           .auth(admin.username, admin.password)
           .expect(function(res) {
+            console.log(res.body);
             expect(res.body).to.has.property('code', 'INVALID_ROLE_OPERATION');
           })
           .expect(400);
@@ -40,7 +43,7 @@ describe('CRUN API', function() {
       it('should return validation error', function * () {
         yield request
           .post('/roles')
-          .send({operations: [{name: 'WRITE_COMMAND'}]})
+          .send({permissions: [{operation: 'WRITE_COMMAND'}]})
           .auth(admin.username, admin.password)
           .expect(function(res) {
             expect(res.body).to.has.property('code', 'INVALID_REQUEST');
@@ -50,7 +53,7 @@ describe('CRUN API', function() {
       it('should create new role', function * () {
         let result = yield request
           .post('/roles')
-          .send({name: 'staging', operations: [{name: 'WRITE_COMMAND'}]})
+          .send({name: 'staging', permissions: [{operation: 'WRITE_COMMAND'}]})
           .auth(admin.username, admin.password)
           .expect(201)
           .expect(function(res) {
@@ -68,9 +71,9 @@ describe('CRUN API', function() {
       before(function * () {
         let result = yield request
           .post('/roles')
-          .send({name: 'test', operations: [
-            {name: 'WRITE_COMMAND'},
-            {name: 'READ_COMMAND'}
+          .send({name: 'test', permissions: [
+            {operation: 'WRITE_COMMAND'},
+            {operation: 'READ_COMMAND'}
           ]})
           .auth(admin.username, admin.password)
           .expect(201);
@@ -88,8 +91,8 @@ describe('CRUN API', function() {
             expect(res.body.links).to.has.property('self');
             expect(res.body).to.has.property('data');
             expect(res.body.data).to.has.property('name', 'test');
-            expect(res.body.data).to.has.property('operations');
-            console.log(res.body.data.operations);
+            expect(res.body.data).to.has.property('permissions');
+            console.log(res.body.data.permissions);
           });
       });
 
@@ -116,7 +119,7 @@ describe('CRUN API', function() {
             expect(res.body).to.has.property('data');
             _.each(res.body.data, item => {
               expect(item).to.has.property('name');
-              expect(item).to.has.property('operations');
+              expect(item).to.has.property('permissions');
             });
           });
       });
@@ -128,9 +131,9 @@ describe('CRUN API', function() {
       before(function * () {
         let result = yield request
           .post('/roles')
-          .send({name: 'test', operations: [
-            {name: 'WRITE_COMMAND'},
-            {name: 'READ_COMMAND'}
+          .send({name: 'test', permissions: [
+            {operation: 'WRITE_COMMAND'},
+            {operation: 'READ_COMMAND'}
           ]})
           .auth(admin.username, admin.password)
           .expect(201);

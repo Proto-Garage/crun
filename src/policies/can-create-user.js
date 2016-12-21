@@ -2,13 +2,13 @@
 import _ from 'lodash';
 
 export let canCreateUser = function * (next) {
-  let operations = _(this.user.roles)
-    .map('operations')
+  let permissions = _(this.user.roles)
+    .map('permissions')
     .flatten()
-    .filter({name: 'WRITE_USER', user: 'all'})
+    .filter({operation: 'WRITE_USER', user: 'all'})
     .value();
 
-  if (operations.length === 0) {
+  if (permissions.length === 0) {
     throw new AppError('FORBIDDEN', 'Cannot create a user.');
   }
   yield next;

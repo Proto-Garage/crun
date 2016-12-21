@@ -2,13 +2,13 @@
 import _ from 'lodash';
 
 export let canFindGroup = function * (next) {
-  let operations = _(this.user.roles)
-    .map('operations')
+  let permissions = _(this.user.roles)
+    .map('permissions')
     .flatten()
-    .filter({name: 'READ_GROUP', group: 'all'})
+    .filter({operation: 'READ_GROUP', group: 'all'})
     .value();
 
-  if (operations.length === 0) {
+  if (permissions.length === 0) {
     throw new AppError('FORBIDDEN', 'Cannot retrieve groups.');
   }
   yield next;

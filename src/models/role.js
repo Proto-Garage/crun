@@ -12,8 +12,8 @@ let schema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'User'
   },
-  operations: [{
-    name: {
+  permissions: [{
+    operation: {
       type: String,
       required: true
     },
@@ -32,6 +32,6 @@ schema.pre('save', function(next) {
 schema.index({name: 1});
 schema.index({creator: 1});
 schema.index({createdAt: -1});
-schema.index({'operations.name': 1});
+schema.index({'permissions.operation': 1});
 
 export let Role = db.model('Role', schema);

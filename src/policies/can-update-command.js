@@ -2,16 +2,16 @@
 import _ from 'lodash';
 
 export let canUpdateCommand = function * (next) {
-  let operations = _(this.user.roles)
-    .map('operations')
+  let permissions = _(this.user.roles)
+    .map('permissions')
     .flatten()
-    .filter({name: 'WRITE_COMMAND'})
+    .filter({operation: 'WRITE_COMMAND'})
     .filter(item => {
       return item.command === 'all' || item.command === this.params.id;
     })
     .value();
 
-  if (operations.length === 0) {
+  if (permissions.length === 0) {
     throw new AppError('FORBIDDEN', `Cannot update command ${this.params.id}.`);
   }
   yield next;

@@ -20,10 +20,13 @@ export let RoleController = {
   create: function * () {
     let params = _.pick(this.request.body, [
       'name',
-      'operations'
+      'permissions'
     ]);
 
-    let diff = _(params.operations).map('name').difference(operations).value();
+    let diff = _(params.permissions)
+      .map('operation')
+      .difference(operations)
+      .value();
 
     if (diff.length > 0) {
       throw new AppError('INVALID_ROLE_OPERATION',
@@ -46,8 +49,8 @@ export let RoleController = {
       .findOne({_id: this.params.id, creator: this.user})
       .select({
         'name': 1,
-        'operations.name': 1,
-        'operations.params': 1
+        'permissions.operation': 1,
+        'permissions.params': 1
       })
       .lean(true)
       .exec();
@@ -72,8 +75,8 @@ export let RoleController = {
       .find({creator: this.user})
       .select({
         'name': 1,
-        'operations.name': 1,
-        'operations.params': 1
+        'permissions.operation': 1,
+        'permissions.params': 1
       })
       .sort({createdAt: -1})
       .skip(skip)
