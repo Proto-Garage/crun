@@ -8,7 +8,7 @@
     "start": "npm run build && env $(cat .env) node index.js",
     "flushdb": "mongo crun --eval \"db.dropDatabase()\"",
     "eslint": "eslint src/",
-    "mocha": "env $(cat .env) mocha --require co-mocha --require ./index --require babel-polyfill --bail dist/test/",
+    "mocha": "env $(cat .env) mocha --require co-mocha --require ./index --require babel-polyfill --bail dist/test/api.js",
     "test": "npm run nsp && npm run eslint && npm run flushdb && npm run build && npm run mocha",
     "nsp": "nsp check --output summary"
   },
@@ -30,6 +30,7 @@
     "gulp-htmlmin": "^3.0.0",
     "gulp-rename": "^1.2.2",
     "gulp-uglify": "^2.0.0",
+    "jwt-simple": "^0.5.1",
     "mocha": "^3.2.0",
     "nsp": "^2.6.2",
     "nsp-formatter-checkstyle": "^1.0.1",

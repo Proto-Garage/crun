@@ -72,7 +72,7 @@ global.app.started = co(function * () {
   });
 
   logger('Initializing admin account.');
-  let role = yield Role.findOneAndUpdate({name: process.env.ADMIN_USERNAME}, {
+  let role = yield Role.findOneAndUpdate({name: 'superuser'}, {
     operations: [
       {name: 'WRITE_USER', user: 'all'},
       {name: 'READ_USER', user: 'all'},
@@ -86,20 +86,14 @@ global.app.started = co(function * () {
     ]
   }, {upsert: true, new: true}).exec();
 
-  let admin = yield User.findOne({username: process.env.ADMIN_USERNAME});
-  if (admin) {
-    yield admin.update({
-      password: yield Util.bcryptHash(process.env.ADMIN_PASSWORD),
-      roles: [role]
-    }).exec();
-  } else {
-    admin = new User({
+  try {
+    let admin = new User({
       username: process.env.ADMIN_USERNAME,
       password: process.env.ADMIN_PASSWORD,
       roles: [role]
     });
     yield admin.save();
-  }
+  } catch (err) {}
 
   app
     .use(router.routes())

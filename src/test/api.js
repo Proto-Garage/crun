@@ -1,4 +1,4 @@
-/* globals app, User */
+/* globals app, User, Role */
 /* eslint max-nested-callbacks: ["error", 6]*/
 import {expect} from 'chai';
 import rand from 'rand-token';
@@ -32,16 +32,35 @@ describe('CRUN API', function() {
 
   describe('Authentication (POST)', function() {
     let user;
+    let role;
 
     before(function * () {
+      role = new Role({
+        name: 'admin',
+        operations: [
+          {name: 'WRITE_USER', user: 'all'},
+          {name: 'READ_USER', user: 'all'},
+          {name: 'WRITE_ROLE', role: 'all'},
+          {name: 'READ_ROLE', role: 'all'},
+          {name: 'WRITE_COMMAND', command: 'all'},
+          {name: 'READ_COMMAND', command: 'all'},
+          {name: 'WRITE_GROUP', group: 'all'},
+          {name: 'READ_GROUP', group: 'all'},
+          {name: 'EXECUTE_GROUP', group: 'all'}
+        ]
+      });
+      yield role.save();
+
       user = new User({
         username: 'test_user_' + rand.generate(8),
-        password: rand.generate(26)
+        password: rand.generate(26),
+        roles: [role]
       });
       yield user.save();
     });
 
     after(function * () {
+      yield Role.remove(role);
       yield User.remove(user);
     });
 
@@ -54,10 +73,37 @@ describe('CRUN API', function() {
             password: user.rawPassword
           })
           .expect(function(res) {
-            expect(res.body).to.has.property('refresh');
-            expect(res.body).to.has.property('access');
+            expect(res.body).to.has.property('refreshToken');
+            expect(res.body).to.has.property('accessToken');
           })
           .expect(200);
+      });
+    });
+
+    describe('Given invalid credentials', function() {
+      it('should return UNAUTHORIZED', function * () {
+        yield request
+          .post('/authenticate')
+          .send({
+            username: user.username + '0',
+            password: user.rawPassword
+          })
+          .expect(function(res) {
+            expect(res.body).to.has.property('code', 'UNAUTHORIZED');
+          })
+          .expect(401);
+      });
+      it('should return UNAUTHORIZED', function * () {
+        yield request
+          .post('/authenticate')
+          .send({
+            username: user.username,
+            password: user.rawPassword + '0'
+          })
+          .expect(function(res) {
+            expect(res.body).to.has.property('code', 'UNAUTHORIZED');
+          })
+          .expect(401);
       });
     });
   });
@@ -75,7 +121,7 @@ describe('CRUN API', function() {
       });
     });
     describe('Given no invalid credentials', function() {
-      it('should return INVALID_USERNAME', function * () {
+      it('should return UNAUTHORIZED', function * () {
         yield request
           .get('/roles')
           .auth(admin.username + '0', admin.password)
@@ -85,7 +131,7 @@ describe('CRUN API', function() {
           .expect(401);
       });
 
-      it('should return INVALID_PASSWORD', function * () {
+      it('should return UNAUTHORIZED', function * () {
         yield request
           .get('/roles')
           .auth(admin.username, admin.password + '0')

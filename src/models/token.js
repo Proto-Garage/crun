@@ -1,5 +1,5 @@
 import db from '../lib/mongoose';
-import {TOKEN_TTL} from '../lib/jwt';
+import {REFRESH_TOKEN_TTL} from '../lib/jwt';
 import mongoose from 'mongoose';
 import moment from 'moment';
 
@@ -26,7 +26,8 @@ schema.statics.cleanUp = function * () {
   yield this
     .model('User')
     .remove({createdAt: {
-      $lte: moment(new Date()).subtract(TOKEN_TTL, 'milliseconds').toDate()
+      $lte: moment(new Date())
+        .subtract(REFRESH_TOKEN_TTL, 'milliseconds').toDate()
     }})
     .exec();
 };
