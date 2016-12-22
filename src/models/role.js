@@ -22,13 +22,12 @@ let schema = new Schema({
     command: String,
     group: String
   }],
-  createdAt: Date
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
 });
 
-schema.pre('save', function(next) {
-  this.createdAt = new Date();
-  next();
-});
 schema.index({name: 1});
 schema.index({creator: 1});
 schema.index({createdAt: -1});

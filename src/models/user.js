@@ -18,13 +18,15 @@ let schema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'User'
   },
-  createdAt: Date,
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
   roles: [{type: Schema.Types.ObjectId, ref: 'Role'}]
 });
 
 schema.pre('save', function(next) {
   let self = this;
-  this.createdAt = new Date();
   co(function * () {
     self.rawPassword = self.password;
     self.password = yield Util.bcryptHash(self.password);

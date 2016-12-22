@@ -14,12 +14,10 @@ let schema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'User'
   },
-  createdAt: Date
-});
-
-schema.pre('save', function(next) {
-  this.createdAt = new Date();
-  next();
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
 });
 
 schema.statics.cleanUp = function * () {

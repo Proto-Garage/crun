@@ -23,16 +23,14 @@ let schema = new Schema({
   },
   cwd: String,
   env: {},
-  createdAt: Date,
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
   timeout: {
     type: Number,
     default: 180000
   }
-});
-
-schema.pre('save', function(next) {
-  this.createdAt = new Date();
-  next();
 });
 
 schema.index({creator: 1});

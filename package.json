@@ -9,7 +9,7 @@
     "flushdb": "mongo crun --eval \"db.dropDatabase()\"",
     "eslint": "eslint src/",
     "mocha": "env $(cat .env) mocha --require co-mocha --require ./index --require babel-polyfill --bail dist/test/api-group.js",
-    "test": "npm run nsp && npm run eslint && npm run flushdb && npm run build && npm run mocha",
+    "test": "npm run eslint && npm run nsp && npm run flushdb && npm run build && npm run mocha",
     "nsp": "nsp check --output summary"
   },
   "license": "ISC",

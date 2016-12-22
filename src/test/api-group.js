@@ -1,9 +1,11 @@
 /* globals app, Group */
 /* eslint max-nested-callbacks: ["error", 6]*/
 import {expect} from 'chai';
-import _ from 'lodash';
 import mongoose from 'mongoose';
-import {isValidGroup} from '../lib/group';
+import rand from 'rand-token';
+import Promise from 'bluebird';
+import _ from 'lodash';
+import co from 'co';
 
 let ObjectId = mongoose.Types.ObjectId;
 
@@ -27,134 +29,187 @@ describe('CRUN API', function() {
   });
 
   describe('Groups', function() {
-    describe('Validation', function() {
-      it('should throw error when type is invalid', function() {
-        let group = {
-          type: 'group'
-        };
-
-        try {
-          isValidGroup(group);
-          expect(true).to.equal(false);
-        } catch (err) {
-          expect(err.message).to.equal('`group` is not a valid type');
-        }
-      });
-
-      it('should not throw error for a valid group', function() {
-        let group = {
-          type: 'command',
-          _id: new ObjectId().toHexString()
-        };
-
-        isValidGroup(group);
-      });
-
-      it('should throw error when _id is undefined', function() {
-        let group = {
-          type: 'command'
-        };
-
-        try {
-          isValidGroup(group);
-          expect(true).to.equal(false);
-        } catch (err) {
-          expect(err.message).to.equal('`_id` is undefined');
-        }
-      });
-
-      it('should not throw error for a valid group', function() {
-        let group = {
-          type: 'serial',
-          groups: [{
-            type: 'command',
-            _id: new ObjectId().toHexString()
-          }, {
-            type: 'command',
-            _id: new ObjectId().toHexString()
-          }]
-        };
-
-        isValidGroup(group);
-      });
-
-      it('should not throw error for a valid group', function() {
-        let group = {
-          type: 'serial',
-          groups: [{
-            type: 'parallel',
-            groups: [{
-              type: 'command',
-              _id: new ObjectId().toHexString()
-            }]
-          }, {
-            type: 'command',
-            _id: new ObjectId().toHexString()
-          }]
-        };
-
-        isValidGroup(group);
-      });
-
-      it('should throw error when _id is undefined', function() {
-        let group = {
-          type: 'serial',
-          groups: [{
-            type: 'parallel',
-            groups: [{
-              type: 'command'
-            }]
-          }, {
-            type: 'command',
-            _id: new ObjectId().toHexString()
-          }]
-        };
-
-        try {
-          isValidGroup(group);
-          expect(true).to.equal(false);
-        } catch (err) {
-          expect(err.message).to.equal('`_id` is undefined');
-        }
-      });
-    });
-
     describe('POST /groups', function() {
-      let command;
-      before(function * () {
-        let result = yield request
-          .post('/commands')
-          .send({name: 'sleepy-head', command: 'sleep 2'})
-          .auth(admin.username, admin.password)
-          .expect(201);
+      describe('Given valid parameters', function() {
+        let command;
+        before(function * () {
+          let result = yield request
+            .post('/commands')
+            .send({name: 'sleepy-head', command: 'sleep 2'})
+            .auth(admin.username, admin.password)
+            .expect(201);
 
-        command = result.body;
+          command = result.body;
+        });
+        it('should create new group', function * () {
+          let group = {
+            name: 'group ' + rand.generate(12),
+            members: [{
+              type: 'command',
+              _id: command._id
+            }],
+            queue: 'test'
+          };
+
+          let res = yield request
+            .post('/groups')
+            .send(group)
+            .auth(admin.username, admin.password)
+            .expect(201);
+
+          expect(res.body).to.have.property('uri');
+          expect(res.body).to.have.property('_id');
+
+          group = yield Group.findById(res.body._id).populate('members').exec();
+          expect(group).to.has.property('name', group.name);
+          expect(group).to.has.property('members');
+          expect(group.members).to.has.length(1);
+        });
       });
-      it('should create new group', function * () {
-        let group = {
-          name: 'group',
-          group: {
-            type: 'command',
-            _id: command._id
-          },
-          queue: 'test'
-        };
+      describe('Given invalid parameters', function() {
+        describe('Given an invalid member command', function() {
+          it('should return 400', function * () {
+            let group = {
+              name: 'group ' + rand.generate(12),
+              members: [{
+                type: 'command',
+                _id: rand.generate(24)
+              }],
+              queue: 'test'
+            };
 
-        let res = yield request
-          .post('/groups')
-          .send(group)
-          .auth(admin.username, admin.password)
-          .expect(201);
+            let res = yield request
+              .post('/groups')
+              .send(group)
+              .auth(admin.username, admin.password)
+              .expect(400);
 
-        expect(res.body).to.have.property('uri');
-        expect(res.body).to.have.property('_id');
+            expect(res.body).to.has.property('code', 'INVALID_REQUEST');
+          });
+        });
+        describe('Given missing required parameters', function() {
+          it('should return 400', function * () {
+            let group = {
+              queue: 'test'
+            };
 
-        group = yield Group.findById(res.body._id).exec();
-        expect(group).to.has.property('name', 'group');
-        expect(group).to.has.property('group');
-        expect(group.group).to.be.deep.equal(group.group);
+            let res = yield request
+              .post('/groups')
+              .send(group)
+              .auth(admin.username, admin.password)
+              .expect(400);
+
+            expect(res.body).to.has.property('code', 'INVALID_REQUEST');
+          });
+        });
       });
+      describe('Given a non-existing member', function() {
+        it('should return 400', function * () {
+          let group = {
+            name: 'group ' + rand.generate(12),
+            members: [{
+              type: 'command',
+              _id: new ObjectId().toString()
+            }],
+            queue: 'test'
+          };
 
+          let res = yield request
+            .post('/groups')
+            .send(group)
+            .auth(admin.username, admin.password)
+            .expect(400);
+
+          expect(res.body).to.has.property('code', 'INVALID_REQUEST');
+        });
+      });
+      describe('Given a valid member group', function() {
+        it('should create new group', function * () {
+          let commands = yield Promise.map(_.range(4), co.wrap(function * () {
+            let payload = {
+              name: 'command ' + rand.generate(8),
+              command: 'sleep 1'
+            };
+
+            let result = yield request
+              .post('/commands')
+              .send(payload)
+              .auth(admin.username, admin.password)
+              .expect(201);
+
+            return _.merge(result.body, payload);
+          }));
+
+          let groups = [];
+
+          {
+            let payload = {
+              name: 'group ' + rand.generate(12),
+              members: _.map(_.take(commands, 2), command => {
+                return {
+                  type: 'command',
+                  _id: command._id
+                };
+              }),
+              executionType: 'parallel',
+              queue: 'test'
+            };
+
+            let res = yield request
+              .post('/groups')
+              .send(payload)
+              .auth(admin.username, admin.password)
+              .expect(201);
+
+            groups.push(_.merge(res.body, payload));
+          }
+
+          {
+            let payload = {
+              name: 'group ' + rand.generate(12),
+              members: [{
+                type: 'group',
+                _id: _.first(groups)._id
+              }, {
+                type: 'command',
+                _id: _.nth(commands, 2)._id
+              }],
+              queue: 'test'
+            };
+
+            let res = yield request
+              .post('/groups')
+              .send(payload)
+              .auth(admin.username, admin.password)
+              .expect(201);
+
+            groups.push(_.merge(res.body, payload));
+          }
+
+          {
+            let payload = {
+              name: 'group ' + rand.generate(12),
+              members: [{
+                type: 'group',
+                _id: _.nth(groups, 1)._id
+              }, {
+                type: 'command',
+                _id: _.nth(commands, 3)._id
+              }],
+              queue: 'test'
+            };
+
+            let res = yield request
+              .post('/groups')
+              .send(payload)
+              .auth(admin.username, admin.password)
+              .expect(201);
+
+            console.log(res.body);
+          }
+        });
+      });
+/*
       it('should create new group', function * () {
         let group = {
           name: 'complex group',
@@ -409,6 +464,7 @@ describe('CRUN API', function() {
         expect(dbGroup.queue).to.equal('test');
         expect(dbGroup.group.type).to.equal('serial');
       });
+  */
     });
   });
 });

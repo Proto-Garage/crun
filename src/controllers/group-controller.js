@@ -1,10 +1,49 @@
-/* globals Group, Command, AppError */
+/* globals Group, AppError, GroupMemberCommand, GroupMemberGroup, GroupMember */
 import _ from 'lodash';
 import url from 'url';
-import {isValidGroup, extractCommands} from '../lib/group';
 import qs from 'querystring';
+import Promise from 'bluebird';
 
 export let GroupController = {
+  create: function * () {
+    let members = [];
+
+    if (this.request.body.members instanceof Array) {
+      for (let item of this.request.body.members) {
+        if (item.type === 'command' && item._id) {
+          members.push(new GroupMemberCommand({command: item._id}));
+        } else if (item.type === 'group' && item._id) {
+          members.push(new GroupMemberGroup({group: item._id}));
+        }
+      }
+    }
+
+    let group = new Group(_.merge(_.pick(this.request.body, [
+      'name',
+      'queue',
+      'enabled'
+    ]), {
+      creator: this.user,
+      members
+    }));
+
+    try {
+      yield Promise.map(members, member => member.save(), {concurrency: 4});
+      yield group.save();
+    } catch (err) {
+      try {
+        yield Promise.map(members, member =>
+          GroupMember.remove(member).exec(), {concurrency: 4});
+      } catch (err) {}
+      throw err;
+    }
+
+    this.body = {
+      uri: url.resolve(this.baseUrl, '/groups/' + group._id),
+      _id: group._id
+    };
+    this.status = 201;
+  },
   update: function * () {
     let params = _.pick(this.request.body, [
       'name',
@@ -35,41 +74,6 @@ export let GroupController = {
     }
 
     this.status = 200;
-  },
-  create: function * () {
-    let params = _.pick(this.request.body, [
-      'name',
-      'group',
-      'queue',
-      'enabled'
-    ]);
-    params.creator = this.user;
-
-    try {
-      isValidGroup(params.group);
-    } catch (err) {
-      throw new AppError('INVALID_REQUEST', err.message);
-    }
-
-    let commands = _.uniq(extractCommands(params.group));
-
-    yield _.map(commands, id => {
-      return function * () {
-        let command = yield Command.findById(id).exec();
-        if (!command) {
-          throw new AppError('INVALID_REQUEST', `${id} command does not exist`);
-        }
-      };
-    });
-
-    let group = new Group(params);
-    yield group.save();
-
-    this.body = {
-      uri: url.resolve(this.baseUrl, '/groups/' + group._id),
-      _id: group._id
-    };
-    this.status = 201;
   },
   find: function * () {
     let limit = Number.parseInt(this.query.limit, 10) || 10;
