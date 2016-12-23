@@ -215,7 +215,7 @@ describe('CRUN API', function() {
 
     describe('GET /groups', function() {
       before(function * () {
-        yield Promise.map(_.range(15), co.wrap(function * () {
+        let commands = yield Promise.map(_.range(15), co.wrap(function * () {
           let command;
 
           {
@@ -233,33 +233,78 @@ describe('CRUN API', function() {
             command = _.merge(result.body, payload);
           }
 
-          {
-            let payload = {
-              name: 'group ' + rand.generate(12),
-              members: [{
-                type: 'command',
-                _id: command._id
-              }],
-              queue: 'test'
-            };
-
-            yield request
-              .post('/groups')
-              .send(payload)
-              .auth(admin.username, admin.password)
-              .expect(201);
-          }
+          return command;
         }), {concurrency: 5});
+
+        yield Promise.map(_.take(commands, 13), co.wrap(function * (command) {
+          let payload = {
+            name: 'group ' + rand.generate(12),
+            members: [{
+              type: 'command',
+              _id: command._id
+            }],
+            queue: 'test'
+          };
+
+          yield request
+            .post('/groups')
+            .send(payload)
+            .auth(admin.username, admin.password)
+            .expect(201);
+        }), {concurrency: 5});
+
+        let group;
+
+        {
+          let payload = {
+            name: 'group ' + rand.generate(12),
+            members: [{
+              type: 'command',
+              _id: _.nth(commands, 13)._id
+            }],
+            executionType: 'parallel',
+            queue: 'test'
+          };
+
+          let res = yield request
+            .post('/groups')
+            .send(payload)
+            .auth(admin.username, admin.password)
+            .expect(201);
+
+          group = _.merge(res.body, payload);
+        }
+
+        {
+          let payload = {
+            name: 'group ' + rand.generate(12),
+            members: [{
+              type: 'command',
+              _id: _.nth(commands, 14)._id
+            }, {
+              type: 'group',
+              _id: group._id
+            }],
+            queue: 'test'
+          };
+
+          yield request
+            .post('/groups')
+            .send(payload)
+            .auth(admin.username, admin.password)
+            .expect(201);
+        }
       });
-      it('should retrieve all existing groups', function * () {
+      it('should retrieve first 10 groups', function * () {
         yield request
           .get('/groups')
           .auth(admin.username, admin.password)
           .expect(function(result) {
-            _.each(result.body.data, item => console.log(item.members));
+            console.dir(result.body, {depth: 5, color: true});
             expect(result.body).to.has.property('links');
             expect(result.body.links).to.has.property('self');
             expect(result.body.links).to.has.property('next');
+            expect(result.body.links).to.has.property('last');
             expect(result.body).to.has.property('data')
               .that.is.a('array');
             _.each(result.body.data, item => {
@@ -271,6 +316,30 @@ describe('CRUN API', function() {
               expect(item).to.has.property('createdAt');
             });
             expect(result.body.data.length).to.equal(10);
+          })
+          .expect(200);
+      });
+      it('should retrieve remaining groups', function * () {
+        yield request
+          .get('/groups?skip=10')
+          .auth(admin.username, admin.password)
+          .expect(function(result) {
+            console.dir(result.body, {depth: 5, color: true});
+            expect(result.body).to.has.property('links');
+            expect(result.body.links).to.has.property('self');
+            expect(result.body.links).to.not.has.property('next');
+            expect(result.body.links).to.has.property('last');
+            expect(result.body).to.has.property('data')
+              .that.is.a('array');
+            _.each(result.body.data, item => {
+              expect(item).to.has.property('name');
+              expect(item).to.has.property('queue');
+              expect(item).to.has.property('enabled');
+              expect(item).to.has.property('executionType');
+              expect(item).to.has.property('members');
+              expect(item).to.has.property('createdAt');
+            });
+            expect(result.body.data.length).to.equal(5);
           })
           .expect(200);
       });
