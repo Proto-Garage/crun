@@ -13,6 +13,24 @@ const DEFAULT_FIELDS_LIST = [
   'createdAt'
 ];
 
+const normalizeMembers = function(members) {
+  return _.map(members, item => {
+    let id = item.command || item.group;
+    return _.merge(_.pick(item, 'type'), {
+      _id: id,
+      _uri: url.resolve(this.baseUrl,
+        `/${(item.command) ? 'commands' : 'groups'}/` + id)
+    });
+  });
+};
+
+const keyArrayToObject = function(keys) {
+  return _.reduce(keys, (accum, field) => {
+    accum[field] = 1;
+    return accum;
+  }, {});
+};
+
 export let GroupController = {
   create: function * () {
     let members = [];
@@ -62,11 +80,6 @@ export let GroupController = {
       fields = _.intersection(fields, this.query.fields.split(','));
     }
 
-    fields = _.reduce(fields, (accum, field) => {
-      accum[field] = 1;
-      return accum;
-    }, {});
-
     let query = {creator: this.user};
 
     let count = yield Group.where(query).count();
@@ -79,7 +92,7 @@ export let GroupController = {
 
     let groups = yield Group
       .find(query)
-      .select(fields)
+      .select(keyArrayToObject(fields))
       .populate({path: 'members', select: {
         command: 1,
         group: 1,
@@ -93,14 +106,7 @@ export let GroupController = {
       .exec();
 
     _.each(groups, item => {
-      item.members = _.map(item.members, item => {
-        let id = item.command || item.group;
-        return _.merge(_.pick(item, 'type'), {
-          _id: id,
-          _uri: url.resolve(this.baseUrl,
-            `/${(item.command) ? 'commands' : 'groups'}/` + id)
-        });
-      });
+      item.members = normalizeMembers.call(this, item.members);
     });
 
     let links = {
@@ -124,6 +130,38 @@ export let GroupController = {
         item._uri = url.resolve(this.baseUrl, '/groups/' + item._id);
         return item;
       })
+    };
+  },
+  findOne: function * () {
+    let fields = DEFAULT_FIELDS_LIST;
+    if (this.query.fields) {
+      fields = _.intersection(fields, this.query.fields.split(','));
+    }
+
+    let group = yield Group
+      .findOne({_id: this.params.id, creator: this.user})
+      .select(_.merge(keyArrayToObject(fields), {_id: 0}))
+      .populate({path: 'members', select: {
+        command: 1,
+        group: 1,
+        type: 1,
+        _id: 0
+      }})
+      .lean(true)
+      .exec();
+
+    if (!group) {
+      throw new AppError('NOT_FOUND',
+        `${this.params.id} group does not exist.`);
+    }
+
+    group.members = normalizeMembers.call(this, group.members);
+
+    this.body = {
+      links: {
+        self: url.resolve(this.baseUrl, '/groups/' + this.params.id)
+      },
+      data: group
     };
   },
   update: function * () {
@@ -156,24 +194,5 @@ export let GroupController = {
     }
 
     this.status = 200;
-  },
-  findOne: function * () {
-    let group = yield Group
-      .findOne({_id: this.params.id, creator: this.user})
-      .select({name: 1, group: 1, createdAt: 1, queue: 1, enabled: 1})
-      .lean(true)
-      .exec();
-
-    if (!group) {
-      throw new AppError('NOT_FOUND',
-        `${this.params.id} group does not exist.`);
-    }
-
-    this.body = {
-      links: {
-        self: url.resolve(this.baseUrl, '/groups/' + this.params.id)
-      },
-      data: group
-    };
   }
 };

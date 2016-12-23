@@ -295,12 +295,16 @@ describe('CRUN API', function() {
             .expect(201);
         }
       });
+      after(function * () {
+        yield Group.remove().exec();
+        yield Command.remove().exec();
+      });
+
       it('should retrieve first 10 groups', function * () {
         yield request
           .get('/groups')
           .auth(admin.username, admin.password)
           .expect(function(result) {
-            console.dir(result.body, {depth: 5, color: true});
             expect(result.body).to.has.property('links');
             expect(result.body.links).to.has.property('self');
             expect(result.body.links).to.has.property('next');
@@ -314,6 +318,8 @@ describe('CRUN API', function() {
               expect(item).to.has.property('executionType');
               expect(item).to.has.property('members');
               expect(item).to.has.property('createdAt');
+              expect(item).to.has.property('_id');
+              expect(item).to.has.property('_uri');
             });
             expect(result.body.data.length).to.equal(10);
           })
@@ -324,7 +330,6 @@ describe('CRUN API', function() {
           .get('/groups?skip=10')
           .auth(admin.username, admin.password)
           .expect(function(result) {
-            console.dir(result.body, {depth: 5, color: true});
             expect(result.body).to.has.property('links');
             expect(result.body.links).to.has.property('self');
             expect(result.body.links).to.not.has.property('next');
@@ -338,8 +343,103 @@ describe('CRUN API', function() {
               expect(item).to.has.property('executionType');
               expect(item).to.has.property('members');
               expect(item).to.has.property('createdAt');
+              expect(item).to.has.property('_id');
+              expect(item).to.has.property('_uri');
             });
             expect(result.body.data.length).to.equal(5);
+          })
+          .expect(200);
+      });
+    });
+
+    describe('GET /groups/:id', function() {
+      let group;
+
+      before(function * () {
+        let commands = yield Promise.map(_.range(2), co.wrap(function * () {
+          let payload = {
+            name: 'command ' + rand.generate(8),
+            command: 'sleep 1'
+          };
+
+          let result = yield request
+            .post('/commands')
+            .send(payload)
+            .auth(admin.username, admin.password)
+            .expect(201);
+
+          return _.merge(result.body, payload);
+        }), {concurrency: 5});
+
+        {
+          let payload = {
+            name: 'group ' + rand.generate(12),
+            members: [{
+              type: 'command',
+              _id: _.first(commands)._id
+            }],
+            queue: 'test'
+          };
+
+          let result = yield request
+            .post('/groups')
+            .send(payload)
+            .auth(admin.username, admin.password)
+            .expect(201);
+
+          group = _.merge(result.body, payload);
+        }
+
+        {
+          let payload = {
+            name: 'group ' + rand.generate(12),
+            members: [{
+              type: 'command',
+              _id: _.last(commands)._id
+            }, {
+              type: 'group',
+              _id: group._id
+            }],
+            queue: 'test'
+          };
+
+          let result = yield request
+            .post('/groups')
+            .send(payload)
+            .auth(admin.username, admin.password)
+            .expect(201);
+
+          group = _.merge(result.body, payload);
+        }
+      });
+
+      it('should retrieve single group', function * () {
+        yield request
+          .get(`/groups/${group._id}`)
+          .auth(admin.username, admin.password)
+          .expect(function(result) {
+            expect(result.body.data).to.has.property('name');
+            expect(result.body.data).to.has.property('queue');
+            expect(result.body.data).to.has.property('enabled');
+            expect(result.body.data).to.has.property('executionType');
+            expect(result.body.data).to.has.property('members');
+            expect(result.body.data).to.has.property('createdAt');
+          })
+          .expect(200);
+      });
+
+      it('should retrieve single group', function * () {
+        yield request
+          .get(`/groups/${group._id}`)
+          .query({fields: 'name,members'})
+          .auth(admin.username, admin.password)
+          .expect(function(result) {
+            expect(result.body.data).to.has.property('name');
+            expect(result.body.data).to.has.property('members');
+            expect(result.body.data).to.not.has.property('queue');
+            expect(result.body.data).to.not.has.property('enabled');
+            expect(result.body.data).to.not.has.property('executionType');
+            expect(result.body.data).to.not.has.property('createdAt');
           })
           .expect(200);
       });
