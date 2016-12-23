@@ -7,7 +7,8 @@ let statusCodes = {
   UNAUTHORIZED: 401,
   INVALID_ROLE_OPERATION: 400,
   NOT_FOUND: 404,
-  FORBIDDEN: 403
+  FORBIDDEN: 403,
+  INVALID_REQUEST: 400
 };
 
 export default [

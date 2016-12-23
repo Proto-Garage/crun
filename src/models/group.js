@@ -48,7 +48,7 @@ export let Group = db.model('Group', groupSchema);
 
 class GroupMemberSchema extends Schema {
   constructor(args) {
-    super(args);
+    super(args, {discriminatorKey: 'type'});
 
     this.add({
       enabled: {
@@ -102,7 +102,7 @@ let groupMemberCommandSchema = new GroupMemberSchema({
 });
 
 export let GroupMember = db.model('GroupMember', groupMemberSchema);
-export let GroupMemberGroup = GroupMember.discriminator('GroupMemberGroup',
+export let GroupMemberGroup = GroupMember.discriminator('group',
   groupMemberGroupSchema);
-export let GroupMemberCommand = GroupMember.discriminator('GroupMemberCommand',
+export let GroupMemberCommand = GroupMember.discriminator('command',
   groupMemberCommandSchema);

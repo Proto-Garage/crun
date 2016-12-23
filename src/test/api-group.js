@@ -1,4 +1,4 @@
-/* globals app, Group */
+/* globals app, Group, Command */
 /* eslint max-nested-callbacks: ["error", 6]*/
 import {expect} from 'chai';
 import mongoose from 'mongoose';
@@ -12,7 +12,7 @@ let ObjectId = mongoose.Types.ObjectId;
 let request;
 
 describe('CRUN API', function() {
-  this.timeout(20000);
+  this.timeout(30000);
 
   let admin = {
     username: process.env.ADMIN_USERNAME,
@@ -30,6 +30,10 @@ describe('CRUN API', function() {
 
   describe('Groups', function() {
     describe('POST /groups', function() {
+      after(function * () {
+        yield Group.remove().exec();
+        yield Command.remove().exec();
+      });
       describe('Given valid parameters', function() {
         let command;
         before(function * () {
@@ -199,16 +203,78 @@ describe('CRUN API', function() {
               queue: 'test'
             };
 
-            let res = yield request
+            yield request
               .post('/groups')
               .send(payload)
               .auth(admin.username, admin.password)
               .expect(201);
-
-            console.log(res.body);
           }
         });
       });
+    });
+
+    describe('GET /groups', function() {
+      before(function * () {
+        yield Promise.map(_.range(15), co.wrap(function * () {
+          let command;
+
+          {
+            let payload = {
+              name: 'command ' + rand.generate(8),
+              command: 'sleep 1'
+            };
+
+            let result = yield request
+              .post('/commands')
+              .send(payload)
+              .auth(admin.username, admin.password)
+              .expect(201);
+
+            command = _.merge(result.body, payload);
+          }
+
+          {
+            let payload = {
+              name: 'group ' + rand.generate(12),
+              members: [{
+                type: 'command',
+                _id: command._id
+              }],
+              queue: 'test'
+            };
+
+            yield request
+              .post('/groups')
+              .send(payload)
+              .auth(admin.username, admin.password)
+              .expect(201);
+          }
+        }), {concurrency: 5});
+      });
+      it('should retrieve all existing groups', function * () {
+        yield request
+          .get('/groups')
+          .auth(admin.username, admin.password)
+          .expect(function(result) {
+            _.each(result.body.data, item => console.log(item.members));
+            expect(result.body).to.has.property('links');
+            expect(result.body.links).to.has.property('self');
+            expect(result.body.links).to.has.property('next');
+            expect(result.body).to.has.property('data')
+              .that.is.a('array');
+            _.each(result.body.data, item => {
+              expect(item).to.has.property('name');
+              expect(item).to.has.property('queue');
+              expect(item).to.has.property('enabled');
+              expect(item).to.has.property('executionType');
+              expect(item).to.has.property('members');
+              expect(item).to.has.property('createdAt');
+            });
+            expect(result.body.data.length).to.equal(10);
+          })
+          .expect(200);
+      });
+    });
 /*
       it('should create new group', function * () {
         let group = {
@@ -465,6 +531,5 @@ describe('CRUN API', function() {
         expect(dbGroup.group.type).to.equal('serial');
       });
   */
-    });
   });
 });

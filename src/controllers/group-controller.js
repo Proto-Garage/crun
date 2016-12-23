@@ -4,6 +4,15 @@ import url from 'url';
 import qs from 'querystring';
 import Promise from 'bluebird';
 
+const DEFAULT_FIELDS_LIST = [
+  'name',
+  'enabled',
+  'executionType',
+  'members',
+  'queue',
+  'createdAt'
+];
+
 export let GroupController = {
   create: function * () {
     let members = [];
@@ -44,6 +53,79 @@ export let GroupController = {
     };
     this.status = 201;
   },
+  find: function * () {
+    let limit = Number.parseInt(this.query.limit, 10) || 10;
+    let skip = Number.parseInt(this.query.skip, 10) || 0;
+
+    let fields = DEFAULT_FIELDS_LIST;
+    if (this.query.fields) {
+      fields = _.intersection(fields, this.query.fields.split(','));
+    }
+
+    fields = _.reduce(fields, (accum, field) => {
+      accum[field] = 1;
+      return accum;
+    }, {});
+
+    let query = {creator: this.user};
+
+    let count = yield Group.where(query).count();
+    if (skip >= count) {
+      this.body = {
+        links: {},
+        data: []
+      };
+    }
+
+    let groups = yield Group
+      .find(query)
+      .select(fields)
+      .populate({path: 'members', select: {
+        command: 1,
+        group: 1,
+        type: 1,
+        _id: 0
+      }})
+      .sort({createdAt: -1})
+      .skip(skip)
+      .limit(limit)
+      .lean(true)
+      .exec();
+
+    _.each(groups, item => {
+      item.members = _.map(item.members, item => {
+        let id = item.command || item.group;
+        return _.merge(_.pick(item, 'type'), {
+          _id: id,
+          _uri: url.resolve(this.baseUrl,
+            `/${(item.command) ? 'commands' : 'groups'}/` + id)
+        });
+      });
+    });
+
+    let links = {
+      self: url.resolve(this.baseUrl, '/groups') +
+        '?' + qs.stringify({limit, skip}),
+      last: url.resolve(this.baseUrl, '/groups') +
+        '?' + qs.stringify({
+          limit: count % limit,
+          skip: Math.floor(count / limit) * limit
+        })
+    };
+
+    if ((limit + skip) < count) {
+      links.next = url.resolve(this.baseUrl, '/groups') +
+        '?' + qs.stringify({limit, skip: limit + skip});
+    }
+
+    this.body = {
+      links: links,
+      data: _.map(groups, item => {
+        item._uri = url.resolve(this.baseUrl, '/groups/' + item._id);
+        return item;
+      })
+    };
+  },
   update: function * () {
     let params = _.pick(this.request.body, [
       'name',
@@ -74,32 +156,6 @@ export let GroupController = {
     }
 
     this.status = 200;
-  },
-  find: function * () {
-    let limit = Number.parseInt(this.query.limit, 10) || 10;
-    let skip = Number.parseInt(this.query.skip, 10) || 0;
-
-    let groups = yield Group
-      .find({creator: this.user})
-      .select({name: 1, group: 1, createdAt: 1, queue: 1, enabled: 1})
-      .sort({createdAt: -1})
-      .skip(skip)
-      .limit(limit)
-      .lean(true)
-      .exec();
-
-    this.body = {
-      links: {
-        self: url.resolve(this.baseUrl, '/groups') +
-          '?' + qs.stringify({limit, skip}),
-        next: url.resolve(this.baseUrl, '/groups') +
-          '?' + qs.stringify({limit, skip: limit})
-      },
-      data: _.map(groups, item => {
-        item.uri = url.resolve(this.baseUrl, '/groups/' + item._id);
-        return item;
-      })
-    };
   },
   findOne: function * () {
     let group = yield Group
