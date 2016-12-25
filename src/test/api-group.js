@@ -443,6 +443,35 @@ describe('CRUN API', function() {
           })
           .expect(200);
       });
+
+      it('should retrieve single group', function * () {
+        yield request
+          .get(`/groups/${group._id}`)
+          .query({fields: 'name,members,executionType', expand: 1})
+          .auth(admin.username, admin.password)
+          .expect(function(result) {
+            console.dir(result.body, {depth: 5});
+            expect(result.body.data).to.has.property('name');
+            expect(result.body.data).to.has.property('executionType');
+            expect(result.body.data).to.has.property('members');
+            let checkMember = function(member) {
+              expect(member).to.has.property('type');
+              expect(member).to.has.property('_id');
+              expect(member).to.has.property('_uri');
+              if (member.type === 'group') {
+                expect(member).to.has.property('name');
+                expect(member).to.has.property('executionType');
+                expect(member).to.has.property('members');
+                _.each(member.members, checkMember);
+              } else if (member.type === 'command') {
+              } else {
+                throw new Error(`${member.type} type is invalid.`);
+              }
+            };
+            _.each(result.body.data.members, checkMember);
+          })
+          .expect(200);
+      });
     });
 /*
       it('should create new group', function * () {

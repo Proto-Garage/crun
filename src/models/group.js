@@ -51,10 +51,6 @@ class GroupMemberSchema extends Schema {
     super(args, {discriminatorKey: 'type'});
 
     this.add({
-      enabled: {
-        type: Boolean,
-        default: true
-      },
       createdAt: {
         type: Date,
         default: Date.now

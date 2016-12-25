@@ -3,6 +3,7 @@ import _ from 'lodash';
 import url from 'url';
 import qs from 'querystring';
 import Promise from 'bluebird';
+import co from 'co';
 
 const DEFAULT_FIELDS_LIST = [
   'name',
@@ -30,6 +31,41 @@ const keyArrayToObject = function(keys) {
     return accum;
   }, {});
 };
+
+const expandGroup = co.wrap(function * (member, fields = ['name', 'members']) {
+  if (member.type === 'group') {
+    let group = yield Group
+      .findOne(member._id)
+      .select(_.merge({
+        _id: 0
+      }, keyArrayToObject(fields)))
+      .populate({path: 'members', select: {
+        command: 1,
+        group: 1,
+        type: 1,
+        _id: 0
+      }})
+      .exec();
+
+    let result = _.merge(_.pick(member, [
+      '_id',
+      '_uri',
+      'type'
+    ]), _.pick(group, fields));
+
+    if (result.members) {
+      result.members = yield Promise.map(group.members, member => {
+        return expandGroup.call(this, member, fields);
+      }, {concurrency: 5});
+
+      result.members = normalizeMembers.call(this, result.members);
+    }
+
+    return result;
+  }
+
+  return member;
+});
 
 export let GroupController = {
   create: function * () {
@@ -156,6 +192,12 @@ export let GroupController = {
     }
 
     group.members = normalizeMembers.call(this, group.members);
+
+    if (this.request.query.expand && group.members) {
+      group.members = yield Promise.map(group.members, member => {
+        return expandGroup.call(this, member, fields);
+      }, {concurrency: 5});
+    }
 
     this.body = {
       links: {

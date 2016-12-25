@@ -4,12 +4,13 @@
   "description": "An API for remotely running commands.",
   "main": "index.js",
   "scripts": {
-    "build": "rm -rf dist/ && babel --out-dir dist/ src/",
+    "clean": "rm -rf dist/",
+    "build": "npm run clean && babel --out-dir dist/ src/",
     "start": "npm run build && env $(cat .env) node index.js",
     "flushdb": "mongo crun --eval \"db.dropDatabase()\"",
     "eslint": "eslint src/",
     "mocha": "env $(cat .env) mocha --require co-mocha --require ./index --require babel-polyfill --bail dist/test/api-group.js",
-    "test": "npm run eslint && npm run nsp && npm run flushdb && npm run build && npm run mocha",
+    "test": "npm run eslint && npm run flushdb && npm run build && npm run mocha",
     "nsp": "nsp check --output summary"
   },
   "license": "ISC",
