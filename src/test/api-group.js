@@ -325,6 +325,50 @@ describe('CRUN API', function() {
           })
           .expect(200);
       });
+
+      it('should retrieve first 10 groups with expanded members',
+      function * () {
+        yield request
+          .get('/groups')
+          .query({expand: 1})
+          .auth(admin.username, admin.password)
+          .expect(function(result) {
+            expect(result.body).to.has.property('links');
+            expect(result.body.links).to.has.property('self');
+            expect(result.body.links).to.has.property('next');
+            expect(result.body.links).to.has.property('last');
+            expect(result.body).to.has.property('data')
+              .that.is.a('array');
+            let checkMember = function(member) {
+              expect(member).to.has.property('_id');
+              expect(member).to.has.property('_uri');
+              expect(member).to.has.property('type');
+              if (member.type === 'group') {
+                expect(member).to.has.property('name');
+                expect(member).to.has.property('queue');
+                expect(member).to.has.property('enabled');
+                expect(member).to.has.property('executionType');
+                expect(member).to.has.property('members');
+                expect(member).to.has.property('createdAt');
+              }
+            };
+            let checkGroup = function(group) {
+              expect(group).to.has.property('name');
+              expect(group).to.has.property('queue');
+              expect(group).to.has.property('enabled');
+              expect(group).to.has.property('executionType');
+              expect(group).to.has.property('members');
+              expect(group).to.has.property('createdAt');
+              expect(group).to.has.property('_id');
+              expect(group).to.has.property('_uri');
+              _.each(result.body.data.members, checkMember);
+            };
+            _.each(result.body.data, checkGroup);
+            expect(result.body.data.length).to.equal(10);
+          })
+          .expect(200);
+      });
+
       it('should retrieve remaining groups', function * () {
         yield request
           .get('/groups?skip=10')
@@ -450,7 +494,6 @@ describe('CRUN API', function() {
           .query({fields: 'name,members,executionType', expand: 1})
           .auth(admin.username, admin.password)
           .expect(function(result) {
-            console.dir(result.body, {depth: 5});
             expect(result.body.data).to.has.property('name');
             expect(result.body.data).to.has.property('executionType');
             expect(result.body.data).to.has.property('members');

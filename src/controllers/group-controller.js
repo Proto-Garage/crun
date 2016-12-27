@@ -145,6 +145,16 @@ export let GroupController = {
       item.members = normalizeMembers.call(this, item.members);
     });
 
+    if (this.request.query.expand) {
+      for (let group of groups) {
+        if (group.members) {
+          group.members = yield Promise.map(group.members, member => {
+            return expandGroup.call(this, member, fields);
+          }, {concurrency: 5});
+        }
+      }
+    }
+
     let links = {
       self: url.resolve(this.baseUrl, '/groups') +
         '?' + qs.stringify({limit, skip}),
@@ -191,7 +201,9 @@ export let GroupController = {
         `${this.params.id} group does not exist.`);
     }
 
-    group.members = normalizeMembers.call(this, group.members);
+    if (group.members) {
+      group.members = normalizeMembers.call(this, group.members);
+    }
 
     if (this.request.query.expand && group.members) {
       group.members = yield Promise.map(group.members, member => {
