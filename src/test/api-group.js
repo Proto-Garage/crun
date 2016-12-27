@@ -516,261 +516,85 @@ describe('CRUN API', function() {
           .expect(200);
       });
     });
-/*
-      it('should create new group', function * () {
-        let group = {
-          name: 'complex group',
-          queue: 'test',
-          group: {
-            type: 'serial',
-            groups: [{
-              type: 'parallel',
-              groups: [{
-                type: 'command',
-                _id: command._id
-              }]
-            }, {
-              type: 'command',
-              _id: command._id
-            }]
-          }
-        };
-
-        let res = yield request
-          .post('/groups')
-          .send(group)
-          .auth(admin.username, admin.password)
-          .expect(201);
-
-        expect(res.body).to.have.property('uri');
-        expect(res.body).to.have.property('_id');
-
-        group = yield Group.findById(res.body._id).exec();
-        expect(group).to.has.property('name', 'complex group');
-        expect(group).to.has.property('group');
-        expect(group.group).to.be.deep.equal(group.group);
-      });
-
-      it('should return INVALID_REQUEST', function * () {
-        let group = {
-          name: 'complex group',
-          queue: 'test',
-          group: {
-            type: 'serial',
-            groups: [{
-              type: 'parallel'
-            }, {
-              type: 'command',
-              _id: command._id
-            }]
-          }
-        };
-
-        yield request
-          .post('/groups')
-          .send(group)
-          .auth(admin.username, admin.password)
-          .expect(function(res) {
-            expect(res.body).to.has.property('code', 'INVALID_REQUEST');
-          })
-          .expect(400);
-      });
-
-      it('should return INVALID_REQUEST', function * () {
-        let group = {
-          name: 'complex group',
-          queue: 'test',
-          group: {
-            type: 'serial',
-            groups: [{
-              type: 'command',
-              _id: new ObjectId().toHexString()
-            }]
-          }
-        };
-
-        yield request
-          .post('/groups')
-          .send(group)
-          .auth(admin.username, admin.password)
-          .expect(function(res) {
-            expect(res.body).to.has.property('code', 'INVALID_REQUEST');
-          })
-          .expect(400);
-      });
-    });
-
-    describe('GET /groups', function() {
-      before(function * () {
-        let result = yield request
-          .post('/commands')
-          .send({name: 'sleepy-head-2', command: 'sleep 2'})
-          .auth(admin.username, admin.password)
-          .expect(201);
-
-        yield _.times(20, index => {
-          return request
-            .post('/groups')
-            .send({
-              name: 'group ' + index,
-              queue: 'test',
-              group: {
-                type: 'command',
-                _id: result.body._id
-              }
-            })
-            .auth(admin.username, admin.password)
-            .expect(201);
-        });
-      });
-
-      it('should return all groups', function * () {
-        let result = yield request
-          .get('/groups')
-          .auth(admin.username, admin.password)
-          .expect(200);
-
-        expect(result.body).to.has.property('links');
-        expect(result.body.links).to.has.property('self');
-        expect(result.body.links).to.has.property('next');
-        expect(result.body).to.has.property('data')
-          .that.is.a('array');
-        _.each(result.body.data, item => {
-          expect(item).to.has.property('name');
-          expect(item).to.has.property('queue');
-          expect(item).to.has.property('createdAt');
-          expect(item).to.has.property('group');
-        });
-      });
-    });
-
-    describe('GET /groups/:id', function() {
-      let group;
-      before(function * () {
-        let result = yield request
-          .post('/commands')
-          .send({name: 'sleepy-head-3', command: 'sleep 2'})
-          .auth(admin.username, admin.password)
-          .expect(201);
-
-        result = yield request
-          .post('/groups')
-          .send({
-            name: 'test group 1',
-            queue: 'test',
-            group: {
-              type: 'command',
-              _id: result.body._id
-            }
-          })
-          .auth(admin.username, admin.password)
-          .expect(201);
-
-        group = result.body;
-      });
-
-      it('should return single group', function * () {
-        let result = yield request
-          .get('/groups/' + group._id)
-          .auth(admin.username, admin.password)
-          .expect(200);
-
-        expect(result.body).to.has.property('links');
-        expect(result.body.links).to.has.property('self');
-        expect(result.body).to.has.property('data');
-        expect(result.body.data).to.has.property('name');
-        expect(result.body.data).to.has.property('queue');
-        expect(result.body.data).to.has.property('createdAt');
-        expect(result.body.data).to.has.property('group');
-      });
-    });
-
-    describe('DELETE /groups/:id', function() {
-      let group;
-
-      before(function * () {
-        let result = yield request
-          .post('/commands')
-          .send({name: 'sleepy-head-4', command: 'sleep 2'})
-          .auth(admin.username, admin.password)
-          .expect(201);
-
-        result = yield request
-          .post('/groups')
-          .send({
-            name: 'test group 2',
-            queue: 'test',
-            group: {
-              type: 'command',
-              _id: result.body._id
-            }
-          })
-          .auth(admin.username, admin.password)
-          .expect(201);
-
-        group = result.body;
-      });
-
-      it('should delete single group', function * () {
-        yield request
-          .delete('/groups/' + group._id)
-          .auth(admin.username, admin.password)
-          .expect(200);
-
-        expect(yield Group.findById(group._id).exec()).to.be.equal(null);
-      });
-    });
 
     describe('PATCH /groups/:id', function() {
       let group;
 
       before(function * () {
-        let result = yield request
-          .post('/commands')
-          .send({name: 'sleepy-head-5', command: 'sleep 2'})
-          .auth(admin.username, admin.password)
-          .expect(201);
+        let command;
 
-        result = yield request
-          .post('/groups')
-          .send({
-            name: 'test group 3',
-            queue: 'test',
-            group: {
+        {
+          let payload = {
+            name: 'command ' + rand.generate(8),
+            command: 'sleep 1'
+          };
+
+          let result = yield request
+            .post('/commands')
+            .send(payload)
+            .auth(admin.username, admin.password)
+            .expect(201);
+
+          command = _.merge(result.body, payload);
+        }
+
+        {
+          let payload = {
+            name: 'group ' + rand.generate(12),
+            members: [{
               type: 'command',
-              _id: result.body._id
-            }
-          })
-          .auth(admin.username, admin.password)
-          .expect(201);
+              _id: command._id
+            }],
+            executionType: 'parallel',
+            queue: 'test'
+          };
 
-        group = result.body;
+          let res = yield request
+            .post('/groups')
+            .send(payload)
+            .auth(admin.username, admin.password)
+            .expect(201);
+
+          group = _.merge(res.body, payload);
+        }
       });
 
-      it('should update single group', function * () {
-        yield request
-          .patch('/groups/' + group._id)
-          .send({
-            name: 'updated',
-            group: {
-              type: 'serial',
-              groups: [{
-                type: 'command',
-                _id: group._id
-              }, {
-                type: 'command',
-                _id: group._id
-              }]
-            }
-          })
-          .auth(admin.username, admin.password)
-          .expect(200);
-
-        let dbGroup = yield Group.findById(group._id).exec();
-        expect(dbGroup.name).to.equal('updated');
-        expect(dbGroup.queue).to.equal('test');
-        expect(dbGroup.group.type).to.equal('serial');
+      describe('Given a non-existing group', function() {
+        it('should return 404', function * () {
+          yield request
+            .patch(`/groups/${new ObjectId().toString()}`)
+            .send({name: 'group ' + rand.generate(12)})
+            .auth(admin.username, admin.password)
+            .expect(function(res) {
+              expect(res.body).to.has.property('code', 'NOT_FOUND');
+            })
+            .expect(404);
+        });
       });
-  */
+
+      describe('Given an existing group', function() {
+        it('should update group', function * () {
+          let payload = {
+            name: 'group ' + rand.generate(12),
+            executionType: 'series'
+          };
+
+          yield request
+            .patch(`/groups/${group._id}`)
+            .send(payload)
+            .auth(admin.username, admin.password)
+            .expect(200);
+
+          let result = yield Group
+            .findOne({_id: group._id})
+            .exec();
+
+          expect(result.name).to.not.equal(group.name);
+          expect(result.executionType).to.not.equal(group.executionType);
+          expect(result.name).to.equal(payload.name);
+          expect(result.executionType).to.equal(payload.executionType);
+        });
+      });
+    });
   });
 });

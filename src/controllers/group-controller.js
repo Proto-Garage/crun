@@ -225,15 +225,8 @@ export let GroupController = {
     };
   },
   update: function * () {
-    let params = _.pick(this.request.body, [
-      'name',
-      'queue',
-      'group',
-      'enabled'
-    ]);
-
     let group = yield Group
-      .findOneAndUpdate({_id: this.params.id, creator: this.user}, params)
+      .findOne({_id: this.params.id, creator: this.user})
       .exec();
 
     if (!group) {
@@ -241,6 +234,15 @@ export let GroupController = {
         `${this.params.id} group does not exist.`);
     }
 
+    let params = _.pick(this.request.body, [
+      'name',
+      'queue',
+      'members',
+      'enabled',
+      'executionType'
+    ]);
+
+    yield group.update(params).exec();
     this.status = 200;
   },
   remove: function * () {
