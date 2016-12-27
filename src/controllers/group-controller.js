@@ -25,6 +25,18 @@ const normalizeMembers = function(members) {
   });
 };
 
+const castMembers = function(members) {
+  return _(members).map(item => {
+    let member;
+    if (item.type === 'command' && item._id) {
+      member = new GroupMemberCommand({command: item._id});
+    } else if (item.type === 'group' && item._id) {
+      member = new GroupMemberGroup({group: item._id});
+    }
+    return member;
+  }).compact().value();
+};
+
 const keyArrayToObject = function(keys) {
   return _.reduce(keys, (accum, field) => {
     accum[field] = 1;
@@ -72,13 +84,7 @@ export let GroupController = {
     let members = [];
 
     if (this.request.body.members instanceof Array) {
-      for (let item of this.request.body.members) {
-        if (item.type === 'command' && item._id) {
-          members.push(new GroupMemberCommand({command: item._id}));
-        } else if (item.type === 'group' && item._id) {
-          members.push(new GroupMemberGroup({group: item._id}));
-        }
-      }
+      members = castMembers(this.request.body.members);
     }
 
     let group = new Group(_.merge(_.pick(this.request.body, [

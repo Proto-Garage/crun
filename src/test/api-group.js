@@ -1,5 +1,5 @@
 /* globals app, Group, Command */
-/* eslint max-nested-callbacks: ["error", 6]*/
+/* eslint max-nested-callbacks: ["error", 10]*/
 import {expect} from 'chai';
 import mongoose from 'mongoose';
 import rand from 'rand-token';
