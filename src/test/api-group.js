@@ -573,26 +573,89 @@ describe('CRUN API', function() {
       });
 
       describe('Given an existing group', function() {
-        it('should update group', function * () {
-          let payload = {
-            name: 'group ' + rand.generate(12),
-            executionType: 'series'
-          };
+        describe('Given parameters', function() {
+          it('should update group', function * () {
+            let payload = {
+              name: 'group ' + rand.generate(12),
+              executionType: 'series'
+            };
 
-          yield request
-            .patch(`/groups/${group._id}`)
-            .send(payload)
-            .auth(admin.username, admin.password)
-            .expect(200);
+            yield request
+              .patch(`/groups/${group._id}`)
+              .send(payload)
+              .auth(admin.username, admin.password)
+              .expect(200);
 
-          let result = yield Group
-            .findOne({_id: group._id})
-            .exec();
+            let result = yield Group
+              .findOne({_id: group._id})
+              .exec();
 
-          expect(result.name).to.not.equal(group.name);
-          expect(result.executionType).to.not.equal(group.executionType);
-          expect(result.name).to.equal(payload.name);
-          expect(result.executionType).to.equal(payload.executionType);
+            expect(result.name).to.not.equal(group.name);
+            expect(result.executionType).to.not.equal(group.executionType);
+            expect(result.name).to.equal(payload.name);
+            expect(result.executionType).to.equal(payload.executionType);
+          });
+
+          describe('Given members', function() {
+            let command;
+
+            before(function * () {
+              let payload = {
+                name: 'command ' + rand.generate(8),
+                command: 'sleep 1'
+              };
+
+              let result = yield request
+                .post('/commands')
+                .send(payload)
+                .auth(admin.username, admin.password)
+                .expect(201);
+
+              command = _.merge(result.body, payload);
+            });
+
+            it('should update members', function * () {
+              let payload = {
+                members: [{
+                  type: 'command',
+                  _id: command._id
+                }]
+              };
+
+              yield request
+                .patch(`/groups/${group._id}`)
+                .send(payload)
+                .auth(admin.username, admin.password)
+                .expect(200);
+
+              let result = yield Group
+                .findOne({_id: group._id})
+                .populate({path: 'members', select: {command: 1}})
+                .exec();
+
+              expect(_.first(result.members).command.toString())
+                .to.equal(command._id);
+            });
+          });
+        });
+
+        describe('Given invalid parameters', function() {
+          it('should return 400', function * () {
+            let payload = {
+              members: [{
+                type: 'command',
+                _id: new ObjectId().toString()
+              }]
+            };
+
+            let res = yield request
+              .patch(`/groups/${group._id}`)
+              .send(payload)
+              .auth(admin.username, admin.password)
+              .expect(400);
+
+            expect(res.body).to.has.property('code', 'INVALID_REQUEST');
+          });
         });
       });
     });

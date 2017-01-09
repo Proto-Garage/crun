@@ -79,12 +79,27 @@ const expandGroup = co.wrap(function * (member, fields = ['name', 'members']) {
   return member;
 });
 
+const createMembers = function * (members) {
+  members = castMembers(members);
+  try {
+    yield Promise.map(members, member => member.save(), {concurrency: 4});
+  } catch (err) {
+    try {
+      yield Promise.map(members, member =>
+        GroupMember.remove(member).exec(), {concurrency: 4});
+    } catch (err) {}
+    throw err;
+  }
+
+  return members;
+};
+
 export let GroupController = {
   create: function * () {
     let members = [];
 
     if (this.request.body.members instanceof Array) {
-      members = castMembers(this.request.body.members);
+      members = yield createMembers(this.request.body.members);
     }
 
     let group = new Group(_.merge(_.pick(this.request.body, [
@@ -95,17 +110,7 @@ export let GroupController = {
       creator: this.user,
       members
     }));
-
-    try {
-      yield Promise.map(members, member => member.save(), {concurrency: 4});
-      yield group.save();
-    } catch (err) {
-      try {
-        yield Promise.map(members, member =>
-          GroupMember.remove(member).exec(), {concurrency: 4});
-      } catch (err) {}
-      throw err;
-    }
+    yield group.save();
 
     this.body = {
       uri: url.resolve(this.baseUrl, '/groups/' + group._id),
@@ -241,6 +246,11 @@ export let GroupController = {
       'enabled',
       'executionType'
     ]);
+
+    if (params.members instanceof Array) {
+      params.members = yield createMembers(params.members);
+      yield GroupMember.remove({_id: {$in: group.members}}).exec();
+    }
 
     yield group.update(params).exec();
     this.status = 200;
