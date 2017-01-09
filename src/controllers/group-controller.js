@@ -1,4 +1,4 @@
-/* globals Group, AppError, GroupMemberCommand, GroupMemberGroup, GroupMember */
+/* globals Group, Command, AppError, GroupMemberCommand, GroupMemberGroup, GroupMember */
 import _ from 'lodash';
 import url from 'url';
 import qs from 'querystring';
@@ -59,6 +59,10 @@ const expandGroup = co.wrap(function * (member, fields = ['name', 'members']) {
       }})
       .exec();
 
+    if (!group) {
+      return null;
+    }
+
     let result = _.merge(_.pick(member, [
       '_id',
       '_uri',
@@ -66,14 +70,31 @@ const expandGroup = co.wrap(function * (member, fields = ['name', 'members']) {
     ]), _.pick(group, fields));
 
     if (result.members) {
-      result.members = yield Promise.map(group.members, member => {
+      result.members = normalizeMembers.call(this, result.members);
+
+      result.members = yield Promise.map(result.members, member => {
         return expandGroup.call(this, member, fields);
       }, {concurrency: 5});
-
-      result.members = normalizeMembers.call(this, result.members);
     }
 
     return result;
+  } else if (member.type === 'command') {
+    let command = yield Command
+      .findOne(member._id)
+      .select(_.merge({
+        _id: 0
+      }, keyArrayToObject(fields)))
+      .exec();
+
+    if (!command) {
+      return null;
+    }
+
+    return _.merge(_.pick(member, [
+      '_id',
+      '_uri',
+      'type'
+    ]), _.pick(command, fields));
   }
 
   return member;
@@ -257,7 +278,7 @@ export let GroupController = {
   },
   remove: function * () {
     let group = yield Group
-      .findOneAndRemove({creator: this.user, _id: this.params.id})
+      .findOne({_id: this.params.id, creator: this.user})
       .exec();
 
     if (!group) {
@@ -265,6 +286,8 @@ export let GroupController = {
         `${this.params.id} group does not exist.`);
     }
 
+    yield group.remove();
+    yield GroupMember.remove({_id: {$in: group.members}}).exec();
     this.status = 200;
   }
 };

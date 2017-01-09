@@ -494,6 +494,7 @@ describe('CRUN API', function() {
           .query({fields: 'name,members,executionType', expand: 1})
           .auth(admin.username, admin.password)
           .expect(function(result) {
+            console.dir(result.body, {depth: 10});
             expect(result.body.data).to.has.property('name');
             expect(result.body.data).to.has.property('executionType');
             expect(result.body.data).to.has.property('members');
@@ -656,6 +657,73 @@ describe('CRUN API', function() {
 
             expect(res.body).to.has.property('code', 'INVALID_REQUEST');
           });
+        });
+      });
+    });
+
+    describe('DELETE /groups/:id', function() {
+      let group;
+
+      before(function * () {
+        let command;
+
+        {
+          let payload = {
+            name: 'command ' + rand.generate(8),
+            command: 'sleep 1'
+          };
+
+          let result = yield request
+            .post('/commands')
+            .send(payload)
+            .auth(admin.username, admin.password)
+            .expect(201);
+
+          command = _.merge(result.body, payload);
+        }
+
+        {
+          let payload = {
+            name: 'group ' + rand.generate(12),
+            members: [{
+              type: 'command',
+              _id: command._id
+            }],
+            executionType: 'parallel',
+            queue: 'test'
+          };
+
+          let res = yield request
+            .post('/groups')
+            .send(payload)
+            .auth(admin.username, admin.password)
+            .expect(201);
+
+          group = _.merge(res.body, payload);
+        }
+      });
+
+      describe('Given non-existing group', function() {
+        it('should return 404', function * () {
+          yield request
+            .delete(`/groups/${new ObjectId().toString()}`)
+            .auth(admin.username, admin.password)
+            .expect(404);
+        });
+      });
+
+      describe('Given existing group', function() {
+        it('should remove group', function * () {
+          yield request
+            .delete(`/groups/${group._id}`)
+            .auth(admin.username, admin.password)
+            .expect(200);
+
+          let result = yield Group
+            .findOne({_id: group._id})
+            .exec();
+
+          expect(result).to.equal(null);
         });
       });
     });
