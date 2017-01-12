@@ -151,5 +151,39 @@ describe('Group', function() {
       expect(Date.now() - timestamp).to.above(2000);
       expect(Date.now() - timestamp).to.below(2500);
     });
+
+    it('should queue groups', function * () {
+      const NUM_COMMANDS = 4;
+
+      let commands = _.map(_.range(NUM_COMMANDS), index => new Command({
+        command: [
+          'echo "start"',
+          `echo "command ${index}"`,
+          'sleep 1',
+          'echo "end"'
+        ].join(' && ')
+      }));
+
+      let groups = _.map(commands, command => {
+        return new Group({
+          name: 'group ' + rand.generate(8),
+          queue: 'local',
+          members: [command]
+        });
+      });
+
+      let group = new Group({
+        name: 'group ' + rand.generate(8),
+        queue: 'global',
+        executionType: 'parallel',
+        members: groups
+      });
+
+      let timestamp = Date.now();
+      yield group.run();
+
+      expect(Date.now() - timestamp).to.above(4000);
+      expect(Date.now() - timestamp).to.below(4500);
+    });
   });
 });

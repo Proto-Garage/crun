@@ -2,6 +2,7 @@ import {EventEmitter} from 'events';
 import _ from 'lodash';
 import co from 'co';
 import STATUS from './status';
+import {acquireToken, releaseToken} from './queue';
 
 export default class Group extends EventEmitter {
   /**
@@ -18,7 +19,7 @@ export default class Group extends EventEmitter {
     this.name = options.name;
     this.executionType = options.executionType || 'series';
     this.members = options.members || [];
-    this.queue = options.queue;
+    this.queue = options.queue || 'global';
 
     this.setStatus(STATUS.PENDING);
   }
@@ -29,6 +30,13 @@ export default class Group extends EventEmitter {
   }
 
   * runMember(member) {
+    let token;
+
+    if (member instanceof Group) {
+      member.setStatus(STATUS.QUEUED);
+      token = yield acquireToken(member.queue);
+    }
+
     member.on('status', status => {
       if (status === 'SUCCEEDED' || status === 'FAILED') {
         this.elapsedTime = Date.now() - this.startedAt;
@@ -37,6 +45,10 @@ export default class Group extends EventEmitter {
     });
 
     yield member.run();
+
+    if (token) {
+      releaseToken(token);
+    }
   }
 
   * run() {
