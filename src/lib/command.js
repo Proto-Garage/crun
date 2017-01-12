@@ -5,6 +5,13 @@ import {v4 as uid} from 'uuid';
 import path from 'path';
 import fs from 'fs';
 
+const STATUS = {
+  PENDING: 'PENDING',
+  STARTED: 'STARTED',
+  FAILED: 'FAILED',
+  SUCCEEDED: 'SUCCEEDED'
+};
+
 export default class Command extends EventEmitter {
 
   /**
@@ -24,7 +31,7 @@ export default class Command extends EventEmitter {
       cwd: '.'
     }, options);
 
-    this.status = 'PENDING';
+    this.status = STATUS.PENDING;
     this.stderr = new EventEmitter();
     this.stdout = new EventEmitter();
     this.instanceId = uid();
@@ -39,16 +46,16 @@ export default class Command extends EventEmitter {
         'timeout'
       ]), function(err) {
         if (err) {
-          self.status = 'FAILED';
+          self.status = STATUS.FAILED;
           self.emit('status', self.status);
           return reject(err);
         }
-        self.status = 'SUCCEEDED';
+        self.status = STATUS.SUCCEEDED;
         self.emit('status', self.status);
         resolve();
       });
 
-      self.status = 'STARTED';
+      self.status = STATUS.STARTED;
       let stream = fs.createWriteStream(
         path.resolve(process.env.COMMAND_LOGS_DIR, self.instanceId + '.log'), {
           encoding: 'utf8',

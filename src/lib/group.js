@@ -1,151 +1,72 @@
+import {EventEmitter} from 'events';
 import _ from 'lodash';
-import mongoose from 'mongoose';
-import url from 'url';
+import co from 'co';
 
-export default class Group {
+const STATUS = {
+  PENDING: 'PENDING',
+  STARTED: 'STARTED',
+  FAILED: 'FAILED',
+  SUCCEEDED: 'SUCCEEDED'
+};
 
+export default class Group extends EventEmitter {
   /**
-   * Create command group object
-   * @param {object}  options
-   * @param {string}  options.type
-   * @param {Command} options.command
-   * @param {Group[]} options.groups
+   * Create group object
+   * @param {object} options
+   * @param {string} options.name
+   * @param {string} options.executionType
+   * @param {object[]} options.members
+   * @param {string} options.queue
    */
   constructor(options) {
-    if (!_.includes(['command', 'serial', 'parallel'], options.type)) {
-      throw new Error(`${options.type} is not supported.`);
-    }
-    this.options = options;
-    this.status = 'PENDING';
+    super();
+
+    this.name = options.name;
+    this.executionType = options.executionType || 'series';
+    this.members = options.members || [];
+    this.queue = options.queue;
+
+    this.setStatus(STATUS.PENDING);
   }
 
-  toStatusObject() {
-    let toStatusObject = function(group) {
-      if (group.options.type === 'command') {
-        let obj = _.merge({},
-          _.pick(group.options, ['_id', 'type']),
-          _.pick(group, [
-            'status',
-            'startedAt',
-            'elapsedTime'
-          ]));
+  setStatus(status) {
+    this.status = status;
+    this.emit('status', status);
+  }
 
-        if (obj.status === 'STARTED') {
-          obj.elapsedTime = Date.now() - obj.startedAt;
-        }
-
-        if (obj.status !== 'PENDING') {
-          obj.log = url.resolve(
-            process.env.BASE_URL, '/logs/' + group.options.command.instanceId
-          );
-        }
-        return obj;
+  * runMember(member) {
+    member.on('status', status => {
+      if (status === 'SUCCEEDED' || status === 'FAILED') {
+        this.elapsedTime = Date.now() - this.startedAt;
       }
-      let obj = _.merge({},
-        _.pick(group.options, ['type']),
-        _.pick(group, ['status', 'startedAt', 'elapsedTime']));
+      this.status = status;
+    });
 
-      if (obj.status === 'STARTED') {
-        obj.elapsedTime = Date.now() - obj.startedAt;
-      }
-      obj.groups = _.map(group.options.groups, toStatusObject);
-      return obj;
-    };
-
-    return toStatusObject(this);
+    yield member.run();
   }
 
   * run() {
-    this.status = 'STARTED';
     this.startedAt = Date.now();
 
-    if (this.options.type === 'command') {
-      this.options.command.on('status', status => {
-        if (status === 'SUCCEEDED' || status === 'FAILED') {
-          this.elapsedTime = Date.now() - this.startedAt;
-        }
-        this.status = status;
-      });
-
-      yield this.options.command.run();
-    } else if (this.options.type === 'serial') {
+    this.setStatus(STATUS.STARTED);
+    if (this.executionType === 'parallel') {
       try {
-        for (let group of this.options.groups) {
-          yield group.run();
-        }
+        yield _.map(this.members, co.wrap(this.runMember));
+        this.setStatus(STATUS.SUCCEEDED);
       } catch (err) {
-        this.elapsedTime = Date.now() - this.startedAt;
-        this.status = 'FAILED';
+        this.setStatus(STATUS.FAILED);
         throw err;
       }
-      this.status = 'SUCCEEDED';
-    } else if (this.options.type === 'parallel') {
-      let errors = [];
-      yield _.map(this.options.groups, group => {
-        return function * () {
-          try {
-            yield group.run();
-          } catch (err) {
-            errors.push(err);
-          }
-        };
-      });
-
-      if (errors.length > 0) {
-        this.elapsedTime = Date.now() - this.startedAt;
-        this.status = 'FAILED';
-        throw errors;
+    } else if (this.executionType === 'series') {
+      try {
+        for (let member of this.members) {
+          yield this.runMember(member);
+        }
+        this.setStatus(STATUS.SUCCEEDED);
+      } catch (err) {
+        this.setStatus(STATUS.FAILED);
+        throw err;
       }
-
-      this.elapsedTime = Date.now() - this.startedAt;
-      this.status = 'SUCCEEDED';
-    } else {
-      throw new Error(`${this.options.type} is not supported.`);
     }
   }
-}
-
-/**
- * Check if object is a valid execution group
- */
-export function isValidGroup(group) {
-  if (!group.type) {
-    throw new Error('`type` is undefined');
-  }
-  if (!_.includes(['serial', 'parallel', 'command'], group.type)) {
-    throw new Error(`\`${group.type}\` is not a valid type`);
-  }
-  if (group.type === 'command') {
-    if (!group._id) {
-      throw new Error('`_id` is undefined');
-    }
-    if (!mongoose.Types.ObjectId.isValid(group._id)) {
-      throw new Error(`\`${group._id}\` is not a valid ObjectId`);
-    }
-  } else {
-    if (!group.groups) {
-      throw new Error('`groups` is undefined');
-    }
-    if (!_.isArray(group.groups)) {
-      throw new Error('`groups` should be an array');
-    }
-    _.each(group.groups, item => {
-      isValidGroup(item);
-    });
-  }
-}
-
-/**
- * Extract command ids
- */
-export function extractCommands(group) {
-  if (group.type === 'command') {
-    return [group._id];
-  }
-
-  let accum = [];
-  for (let g of group.groups) {
-    accum = accum.concat(extractCommands(g));
-  }
-  return accum;
 }
