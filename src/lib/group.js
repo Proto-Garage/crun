@@ -1,13 +1,7 @@
 import {EventEmitter} from 'events';
 import _ from 'lodash';
 import co from 'co';
-
-const STATUS = {
-  PENDING: 'PENDING',
-  STARTED: 'STARTED',
-  FAILED: 'FAILED',
-  SUCCEEDED: 'SUCCEEDED'
-};
+import STATUS from './status';
 
 export default class Group extends EventEmitter {
   /**

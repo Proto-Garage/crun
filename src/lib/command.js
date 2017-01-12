@@ -4,13 +4,7 @@ import {EventEmitter} from 'events';
 import {v4 as uid} from 'uuid';
 import path from 'path';
 import fs from 'fs';
-
-const STATUS = {
-  PENDING: 'PENDING',
-  STARTED: 'STARTED',
-  FAILED: 'FAILED',
-  SUCCEEDED: 'SUCCEEDED'
-};
+import STATUS from './status';
 
 export default class Command extends EventEmitter {
 
