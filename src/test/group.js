@@ -214,36 +214,41 @@ describe('Group', function() {
       });
 
       let status = extractStatus(groupTwo);
-      expect(status).to.deep.equal({
-        status: 'PENDING',
-        startedAt: null,
-        elapsedTime: null,
-        type: 'group',
-        executionType: 'series',
-        members: [{
-          status: 'PENDING',
-          startedAt: null,
-          elapsedTime: null,
-          type: 'command'
-        }, {
-          status: 'PENDING',
-          startedAt: null,
-          elapsedTime: null,
-          type: 'group',
-          executionType: 'parallel',
-          members: [{
-            status: 'PENDING',
-            startedAt: null,
-            elapsedTime: null,
-            type: 'command'
-          }, {
-            status: 'PENDING',
-            startedAt: null,
-            elapsedTime: null,
-            type: 'command'
-          }]
-        }]
-      });
+      expect(status).to.has.deep.property('status', 'PENDING');
+      expect(status).to.has.deep.property('startedAt', null);
+      expect(status).to.has.deep.property('elapsedTime', null);
+      expect(status).to.has.deep.property('type', 'group');
+      expect(status).to.has.deep.property('members');
+      expect(status).to.has.deep.property('members[0].status', 'PENDING');
+      expect(status).to.has.deep.property('members[0].startedAt', null);
+      expect(status).to.has.deep.property('members[0].elapsedTime', null);
+      expect(status).to.has.deep.property('members[0].type', 'command');
+      expect(status).to.has.deep.property('members[0].log');
+      expect(status).to.has.deep.property('members[1].status', 'PENDING');
+      expect(status).to.has.deep.property('members[1].startedAt', null);
+      expect(status).to.has.deep.property('members[1].elapsedTime', null);
+      expect(status).to.has.deep.property('members[1].type', 'group');
+      expect(status).to.has.deep.property('members[1].members');
+      expect(status).to.has.deep
+        .property('members[1].members[0].status', 'PENDING');
+      expect(status).to.has.deep
+        .property('members[1].members[0].startedAt', null);
+      expect(status).to.has.deep
+        .property('members[1].members[0].elapsedTime', null);
+      expect(status).to.has.deep
+        .property('members[1].members[0].type', 'command');
+      expect(status).to.has.deep
+        .property('members[1].members[0].log');
+      expect(status).to.has.deep
+        .property('members[1].members[1].status', 'PENDING');
+      expect(status).to.has.deep
+        .property('members[1].members[1].startedAt', null);
+      expect(status).to.has.deep
+        .property('members[1].members[1].elapsedTime', null);
+      expect(status).to.has.deep
+        .property('members[1].members[1].type', 'command');
+      expect(status).to.has.deep
+        .property('members[1].members[1].log');
 
       yield [function * () {
         yield groupTwo.run();
