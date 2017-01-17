@@ -4,6 +4,7 @@ import url from 'url';
 import qs from 'querystring';
 import Promise from 'bluebird';
 import co from 'co';
+import {generate as randString} from 'rand-token';
 
 const DEFAULT_FIELDS_LIST = [
   'name',
@@ -123,11 +124,18 @@ export let GroupController = {
       members = yield createMembers(this.request.body.members);
     }
 
-    let group = new Group(_.merge(_.pick(this.request.body, [
+    let params = _.pick(this.request.body, [
       'name',
       'queue',
-      'enabled'
-    ]), {
+      'enabled',
+      'executionType'
+    ]);
+
+    if (_.isUndefined(params.queue)) {
+      params.queue = randString(12);
+    }
+
+    let group = new Group(_.merge(params, {
       creator: this.user,
       members
     }));
@@ -203,7 +211,7 @@ export let GroupController = {
     }
 
     this.body = {
-      links: links,
+      links,
       data: _.map(groups, item => {
         item._uri = url.resolve(this.baseUrl, '/groups/' + item._id);
         return item;

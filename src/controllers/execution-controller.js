@@ -1,15 +1,14 @@
-/* globals Group, Command, Execution, AppError */
+/* globals Execution, AppError */
 import _ from 'lodash';
 import url from 'url';
 import qs from 'querystring';
-import CommandObject from '../lib/command';
-import {default as GroupObject, extractCommands} from '../lib/group';
+import {buildGroup, extractStatus} from '../lib/group';
 import co from 'co';
+import STATUS from '../lib/status';
 
 import mongoose from 'mongoose';
 
 let executions = {};
-let queues = {};
 
 let ObjectId = mongoose.Types.ObjectId;
 
@@ -24,97 +23,47 @@ export let ExecutionController = {
       throw new AppError('INVALID_REQUEST',
         `${params.group} is not a valid ObjectId.`);
     }
-    let group = yield Group
-      .findById(params.group)
-      .exec();
 
-    if (!group) {
-      throw new AppError('INVALID_REQUEST',
-        `${params.group} does not exist.`);
-    }
-
-    if (!group.enabled) {
-      throw new AppError('INVALID_REQUEST',
-        `${params.group} is disabled.`);
-    }
-
-    let queue = group.queue;
-    group = group.group;
-
-    let commandsList = extractCommands(group);
-    let commands = {};
-    yield _.map(commandsList, id => {
-      return function * () {
-        let command = yield Command
-          .findById(id)
-          .select({name: 1, command: 1, env: 1, cwd: 1, timeout: 1, enabled: 1})
-          .lean(true)
-          .exec();
-
-        if (!command) {
-          throw new AppError('INVALID_REQUEST',
-            `${id} command does not exist.`);
-        }
-
-        if (command.enabled) {
-          commands[id] = command;
-        }
-      };
-    });
-
-    let convert = function(group) {
-      if (group.type === 'command') {
-        group.command = new CommandObject(commands[group._id]);
-        return new GroupObject(group);
-      }
-      group.groups = _.map(group.groups, item => {
-        return convert(item);
-      });
-
-      return new GroupObject(group);
-    };
-
-    group = convert(group);
+    let group = yield buildGroup(params.group);
 
     let execution = new Execution(params);
     yield execution.save();
 
     let executionId = execution._id.toHexString();
-    executions[executionId] = group;
-
     this.body = {
-      uri: url.resolve(this.baseUrl, '/executions/' + execution._id),
+      uri: url.resolve(this.baseUrl, '/executions/' + executionId),
       _id: executionId
     };
     this.status = 201;
 
-    if (queues[queue]) {
-      queues[queue].push(executionId);
-    } else {
-      queues[queue] = [executionId];
-      co(function * () {
-        while (queues[queue].length > 0) {
-          let executionId = _.first(queues[queue]);
-          try {
-            yield executions[executionId].run();
-          } catch (err) {
-            console.error(err);
-          }
-          yield Execution
-            .update({_id: executionId},
-              {status: executions[executionId].toStatusObject()})
-            .exec();
-          queues[queue].shift();
-          delete executions[executionId];
-        }
-        delete queues[queue];
+    executions[executionId] = group;
+
+    co(function * () {
+      let promise = new Promise(function(resolve) {
+        executions[executionId].on('status', status => {
+          let update = extractStatus(executions[executionId]);
+          Execution.update({_id: executionId}, {status: update})
+            .exec()
+            .then(function() {
+              if (status === STATUS.SUCCEEDED || status === STATUS.FAILED) {
+                resolve();
+              }
+            });
+        });
       });
-    }
+
+      yield executions[executionId].run();
+      yield promise;
+    }).then(function() {
+      delete executions[executionId];
+    }).catch(err => {
+      console.error(err);
+    });
   },
   findOne: function * () {
     let execution = yield Execution
       .findOne({_id: this.params.id, creator: this.user})
-      .select({createdAt: 1, group: 1, status: 1})
+      .select({createdAt: 1, status: 1})
       .lean(true)
       .exec();
 
@@ -123,23 +72,35 @@ export let ExecutionController = {
         `${this.params.id} execution does not exist.`);
     }
 
-    if (executions[execution._id]) {
-      execution.status = executions[execution._id].toStatusObject();
+    let executionId = execution._id.toHexString();
+    if (executions[executionId]) {
+      execution.status = extractStatus(executions[executionId]);
     }
 
     this.body = {
       links: {
         self: url.resolve(this.baseUrl, '/execution/' + this.params.id)
       },
-      data: execution
+      data: _.omit(execution, '_id')
     };
   },
   find: function * () {
     let limit = Number.parseInt(this.query.limit, 10) || 10;
     let skip = Number.parseInt(this.query.skip, 10) || 0;
 
+    let query = {creator: this.user};
+
+    let count = yield Execution.where(query).count();
+
+    if (skip >= count) {
+      this.body = {
+        links: {},
+        data: []
+      };
+    }
+
     let data = yield Execution
-      .find({creator: this.user})
+      .find(query)
       .select({createdAt: 1, group: 1, status: 1})
       .sort({createdAt: -1})
       .skip(skip)
@@ -147,22 +108,34 @@ export let ExecutionController = {
       .lean(true)
       .exec();
 
-    _.each(data, item => {
-      if (executions[item._id]) {
-        item.status = executions[item._id].toStatusObject();
+    _.each(data, execution => {
+      let executionId = execution._id.toHexString();
+      if (executions[executionId]) {
+        execution.status = extractStatus(executions[executionId]);
       }
     });
 
+    let links = {
+      self: url.resolve(this.baseUrl, '/executions') +
+        '?' + qs.stringify({limit, skip}),
+      last: url.resolve(this.baseUrl, '/executions') +
+        '?' + qs.stringify({
+          limit: count % limit,
+          skip: Math.floor(count / limit) * limit
+        })
+    };
+
+    if ((limit + skip) < count) {
+      links.next = url.resolve(this.baseUrl, '/executions') +
+        '?' + qs.stringify({limit, skip: limit + skip});
+    }
+
     this.body = {
-      links: {
-        self: url.resolve(this.baseUrl, '/executions') +
-          '?' + qs.stringify({limit, skip}),
-        next: url.resolve(this.baseUrl, '/executions') +
-          '?' + qs.stringify({limit, skip: limit})
-      },
-      data: _.map(data, item => {
-        item.uri = url.resolve(this.baseUrl, '/executions/' + item._id);
-        return item;
+      links,
+      data: _.map(data, execution => {
+        execution.uri = url.resolve(this.baseUrl,
+          '/executions/' + execution._id);
+        return execution;
       })
     };
   }
