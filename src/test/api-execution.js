@@ -196,6 +196,8 @@ describe('CRUN API', function() {
               .to.has.deep.property('members[0].elapsedTime');
             expect(res.body.data.status)
               .to.has.deep.property('members[0].type', 'command');
+            expect(res.body.data.status)
+              .to.has.deep.property('members[0].log');
           })
           .expect(200);
 
@@ -229,6 +231,8 @@ describe('CRUN API', function() {
               .to.has.deep.property('members[0].elapsedTime');
             expect(res.body.data.status)
               .to.has.deep.property('members[0].type', 'command');
+            expect(res.body.data.status)
+              .to.has.deep.property('members[0].log');
           })
           .expect(200);
       });
@@ -313,6 +317,8 @@ describe('CRUN API', function() {
               expect(res.body.data.status)
                 .to.has.deep.property('members[0].type', 'command');
               expect(res.body.data.status)
+                .to.has.deep.property('members[0].log');
+              expect(res.body.data.status)
                 .to.has.deep.property('members[1]._id', command._id);
               expect(res.body.data.status)
                 .to.has.deep.property('members[1].status', 'STARTED');
@@ -323,6 +329,8 @@ describe('CRUN API', function() {
               expect(res.body.data.status)
                 .to.has.deep.property('members[1].type', 'command');
               expect(res.body.data.status)
+                .to.has.deep.property('members[1].log');
+              expect(res.body.data.status)
                 .to.has.deep.property('members[2]._id', command._id);
               expect(res.body.data.status)
                 .to.has.deep.property('members[2].status', 'STARTED');
@@ -332,6 +340,8 @@ describe('CRUN API', function() {
                 .to.has.deep.property('members[2].elapsedTime');
               expect(res.body.data.status)
                 .to.has.deep.property('members[2].type', 'command');
+              expect(res.body.data.status)
+                .to.has.deep.property('members[2].log');
             })
             .expect(200);
 
@@ -403,6 +413,12 @@ describe('CRUN API', function() {
                 .property('members[0].members[0].elapsedTime');
               expect(res.body.data.status)
                 .to.has.deep
+                .property('members[0].members[0].type', 'command');
+              expect(res.body.data.status)
+                .to.has.deep
+                .property('members[0].members[0].log');
+              expect(res.body.data.status)
+                .to.has.deep
                 .property('members[0].members[1]._id', command._id);
               expect(res.body.data.status)
                 .to.has.deep
@@ -413,6 +429,12 @@ describe('CRUN API', function() {
               expect(res.body.data.status)
                 .to.has.deep
                 .property('members[0].members[1].elapsedTime');
+              expect(res.body.data.status)
+                .to.has.deep
+                .property('members[0].members[1].type', 'command');
+              expect(res.body.data.status)
+                .to.has.deep
+                .property('members[0].members[1].log');
               expect(res.body.data.status)
                 .to.has.deep
                 .property('members[0].members[2]._id', command._id);
@@ -426,6 +448,12 @@ describe('CRUN API', function() {
                 .to.has.deep
                 .property('members[0].members[2].elapsedTime');
               expect(res.body.data.status)
+                .to.has.deep
+                .property('members[0].members[2].type', 'command');
+              expect(res.body.data.status)
+                .to.has.deep
+                .property('members[0].members[2].log');
+              expect(res.body.data.status)
                 .to.has.deep.property('members[1]._id', command._id);
               expect(res.body.data.status)
                 .to.has.deep.property('members[1].status', 'PENDING');
@@ -435,6 +463,8 @@ describe('CRUN API', function() {
                 .to.has.deep.property('members[1].elapsedTime');
               expect(res.body.data.status)
                 .to.has.deep.property('members[1].type', 'command');
+              expect(res.body.data.status)
+                .to.has.deep.property('members[1].log');
             })
             .expect(200);
 

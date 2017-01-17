@@ -2,7 +2,7 @@
 /* eslint max-nested-callbacks: ["error", 6] */
 import _ from 'lodash';
 import {expect} from 'chai';
-import rand from 'rand-token';
+import {v4 as uid} from 'uuid';
 
 let request;
 
@@ -37,23 +37,24 @@ describe('CRUN API', function() {
         })
         .auth(admin.username, admin.password)
         .expect(201);
+      let command = result.body;
 
       result = yield request
         .post('/groups')
         .send({
           name: 'pokemon',
-          queue: 'pokemon',
-          group: {
+          members: [{
             type: 'command',
-            _id: result.body._id
-          }
+            _id: command._id
+          }]
         })
         .auth(admin.username, admin.password)
         .expect(201);
+      let group = result.body;
 
       result = yield request
         .post('/executions')
-        .send({group: result.body._id})
+        .send({group: group._id})
         .auth(admin.username, admin.password)
         .expect(201);
 
@@ -64,10 +65,11 @@ describe('CRUN API', function() {
 
       execution = result.body;
     });
+
     describe('GET /logs/:id', function() {
       it('should return NOT_FOUND', function * () {
         yield request
-          .get('/logs/' + rand.generate(16))
+          .get('/logs/' + uid())
           .expect(404)
           .expect(function(res) {
             expect(res.body).to.has.property('code', 'NOT_FOUND');
@@ -75,7 +77,9 @@ describe('CRUN API', function() {
       });
 
       it('should return execution log', function * () {
-        let path = execution.data.status.log.match(/.+(\/logs\/.+)/)[1];
+        let path = execution
+          .data.status.members[0].log.match(/.+(\/logs\/.+)/)[1];
+
         yield request
           .get(path)
           .expect(function(res) {

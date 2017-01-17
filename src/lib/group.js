@@ -9,6 +9,7 @@ import Command from './command';
 import Promise from 'bluebird';
 import {generate as randString} from 'rand-token';
 import _ from 'lodash';
+import url from 'url';
 
 export default class Group extends EventEmitter {
   /**
@@ -165,6 +166,7 @@ export let extractStatus = function(group) {
   if (group instanceof Command) {
     status._id = group.commandId;
     status.type = 'command';
+    status.log = url.resolve(process.env.BASE_URL, '/logs/' + group.instanceId);
   } else if (group instanceof Group) {
     status._id = group.groupId;
     status.type = 'group';
