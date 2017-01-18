@@ -9,7 +9,7 @@
     "start": "npm run build && env $(cat .env) node index.js",
     "flushdb": "mongo crun --eval \"db.dropDatabase()\"",
     "eslint": "eslint src/",
-    "mocha": "env $(cat .env) mocha --require co-mocha --require ./index --require babel-polyfill --bail dist/test/api-group.js",
+    "mocha": "env $(cat .env) mocha --require co-mocha --require ./index --require babel-polyfill --bail dist/test/api-user.js",
     "test": "npm run eslint && npm run flushdb && npm run build && npm run mocha",
     "nsp": "nsp check --output summary"
   },
@@ -54,7 +54,7 @@
     "koa-compose": "^2.4.0",
     "koa-json": "^1.1.3",
     "koa-router": "^5.4.0",
-    "lodash": "^4.15.0",
+    "lodash": "^4.17.4",
     "moment": "^2.17.1",
     "mongoose": "^4.5.10",
     "rand-token": "^0.2.1",

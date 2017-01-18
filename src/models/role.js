@@ -44,9 +44,8 @@ let schema = new Schema({
   }
 });
 
-schema.index({name: 1});
+schema.index({name: 1}, {unique: true});
 schema.index({creator: 1});
 schema.index({createdAt: -1});
-schema.index({'permissions.operation': 1});
 
 export let Role = db.model('Role', schema);

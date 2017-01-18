@@ -1,4 +1,6 @@
 /* globals AppError, User */
+import _ from 'lodash';
+
 export let validCredentials = function * (next) {
   if (!this.request.headers.authorization) {
     throw new AppError('UNAUTHORIZED', 'Unauthorized.');
@@ -28,6 +30,11 @@ export let validCredentials = function * (next) {
     `${this.credentials.username}:${this.credentials.password}@`,
     baseUrl[1]
   ].join('');
+
+  this.permissions = _(this.user.roles)
+    .map('permissions')
+    .flatten()
+    .value();
 
   yield next;
 };

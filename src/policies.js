@@ -14,8 +14,8 @@ export default {
   UserController: {
     create: ['validCredentials', 'canCreateUser'],
     find: ['validCredentials', 'canFindUser'],
-    findOne: ['validCredentials', 'validObjectId', 'canFindSingleUser'],
-    remove: ['validCredentials', 'validObjectId', 'canRemoveUser'],
+    findOne: ['validCredentials', 'validObjectId', 'canFindUser'],
+    remove: ['validCredentials', 'validObjectId'],
     update: ['validCredentials', 'validObjectId', 'canUpdateUser']
   },
   CommandController: {

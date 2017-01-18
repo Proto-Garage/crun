@@ -2,13 +2,8 @@
 import _ from 'lodash';
 
 export let canUpdateUser = function * (next) {
-  let permissions = _(this.user.roles)
-    .map('permissions')
-    .flatten()
-    .filter({operation: 'WRITE_USER'})
-    .filter(item => {
-      return item.user === 'all' || item.user === this.params.id;
-    })
+  let permissions = _(this.permissions)
+    .filter({operation: 'UPDATE_USER'})
     .value();
 
   if (permissions.length === 0) {

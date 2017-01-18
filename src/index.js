@@ -74,15 +74,19 @@ global.app.started = co(function * () {
   logger('Initializing admin account.');
   let role = yield Role.findOneAndUpdate({name: 'superuser'}, {
     permissions: [
-      {operation: 'WRITE_USER', user: 'all'},
-      {operation: 'READ_USER', user: 'all'},
-      {operation: 'WRITE_ROLE', role: 'all'},
-      {operation: 'READ_ROLE', role: 'all'},
-      {operation: 'WRITE_COMMAND', command: 'all'},
-      {operation: 'READ_COMMAND', command: 'all'},
-      {operation: 'WRITE_GROUP', group: 'all'},
-      {operation: 'READ_GROUP', group: 'all'},
-      {operation: 'EXECUTE_GROUP', group: 'all'}
+      {operation: 'CREATE_USER'},
+      {operation: 'READ_USER'},
+      {operation: 'UPDATE_USER'},
+      {operation: 'CREATE_ROLE'},
+      {operation: 'READ_ROLE'},
+      {operation: 'UPDATE_ROLE'},
+      {operation: 'CREATE_COMMAND'},
+      {operation: 'READ_COMMAND'},
+      {operation: 'UPDATE_COMMAND'},
+      {operation: 'CREATE_GROUP'},
+      {operation: 'READ_GROUP'},
+      {operation: 'UPDATE_GROUP'},
+      {operation: 'EXECUTE_GROUP'}
     ]
   }, {upsert: true, new: true}).exec();
 

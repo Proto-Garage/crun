@@ -120,6 +120,7 @@ describe('CRUN API', function() {
           .expect(401);
       });
     });
+
     describe('Given no invalid credentials', function() {
       it('should return UNAUTHORIZED', function * () {
         yield request
@@ -141,6 +142,7 @@ describe('CRUN API', function() {
           .expect(401);
       });
     });
+
     describe('Given valid credentials', function() {
       it('should return 200', function * () {
         yield request
