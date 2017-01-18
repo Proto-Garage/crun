@@ -1,4 +1,4 @@
-/* globals Execution, AppError */
+/* globals Execution, AppError, Util */
 import _ from 'lodash';
 import url from 'url';
 import qs from 'querystring';
@@ -11,6 +11,15 @@ import mongoose from 'mongoose';
 let executions = {};
 
 let ObjectId = mongoose.Types.ObjectId;
+
+const DEFAULT_FIELDS_LIST = [
+  'name',
+  'enabled',
+  'executionType',
+  'members',
+  'queue',
+  'createdAt'
+];
 
 export let ExecutionController = {
   create: function * () {
@@ -61,9 +70,14 @@ export let ExecutionController = {
     });
   },
   findOne: function * () {
+    let fields = DEFAULT_FIELDS_LIST;
+    if (this.query.fields) {
+      fields = _.intersection(fields, this.query.fields.split(','));
+    }
+
     let execution = yield Execution
       .findOne({_id: this.params.id, creator: this.user})
-      .select({createdAt: 1, status: 1})
+      .select(_.merge(Util.keyArrayToObject(fields), {_id: 0}))
       .lean(true)
       .exec();
 
@@ -99,9 +113,14 @@ export let ExecutionController = {
       };
     }
 
+    let fields = DEFAULT_FIELDS_LIST;
+    if (this.query.fields) {
+      fields = _.intersection(fields, this.query.fields.split(','));
+    }
+
     let data = yield Execution
       .find(query)
-      .select({createdAt: 1, group: 1, status: 1})
+      .select(Util.keyArrayToObject(fields))
       .sort({createdAt: -1})
       .skip(skip)
       .limit(limit)

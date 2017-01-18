@@ -3,6 +3,31 @@ import mongoose from 'mongoose';
 
 let Schema = mongoose.Schema;
 
+let permissionSchema = new Schema({
+  operation: {
+    type: String,
+    required: true
+  },
+  scope: {
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    role: {
+      type: Schema.Types.ObjectId,
+      ref: 'Role'
+    },
+    command: {
+      type: Schema.Types.ObjectId,
+      ref: 'Command'
+    },
+    group: {
+      type: Schema.Types.ObjectId,
+      ref: 'Group'
+    }
+  }
+}, {_id: false});
+
 let schema = new Schema({
   name: {
     type: String,
@@ -12,16 +37,7 @@ let schema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'User'
   },
-  permissions: [{
-    operation: {
-      type: String,
-      required: true
-    },
-    user: String,
-    role: String,
-    command: String,
-    group: String
-  }],
+  permissions: [permissionSchema],
   createdAt: {
     type: Date,
     default: Date.now

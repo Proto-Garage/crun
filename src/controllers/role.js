@@ -1,22 +1,16 @@
-/* globals Role, AppError */
+/* globals Role, AppError, Util */
 import _ from 'lodash';
 import url from 'url';
 import operations from '../lib/operations';
 import qs from 'querystring';
 
+const DEFAULT_FIELDS_LIST = [
+  'name',
+  'createdAt',
+  'permissions'
+];
+
 export let RoleController = {
-  remove: function * () {
-    let role = yield Role
-      .findOneAndRemove({creator: this.user, _id: this.params.id})
-      .exec();
-
-    if (!role) {
-      throw new AppError('NOT_FOUND',
-        `${this.params.id} role does not exist.`);
-    }
-
-    this.status = 200;
-  },
   create: function * () {
     let params = _.pick(this.request.body, [
       'name',
@@ -45,13 +39,14 @@ export let RoleController = {
     this.status = 201;
   },
   findOne: function * () {
+    let fields = DEFAULT_FIELDS_LIST;
+    if (this.query.fields) {
+      fields = _.intersection(fields, this.query.fields.split(','));
+    }
+
     let role = yield Role
       .findOne({_id: this.params.id, creator: this.user})
-      .select({
-        'name': 1,
-        'permissions.operation': 1,
-        'permissions.params': 1
-      })
+      .select(_.merge(Util.keyArrayToObject(fields), {_id: 0}))
       .lean(true)
       .exec();
 
@@ -71,30 +66,62 @@ export let RoleController = {
     let limit = Number.parseInt(this.query.limit, 10) || 10;
     let skip = Number.parseInt(this.query.skip, 10) || 0;
 
+    let fields = DEFAULT_FIELDS_LIST;
+    if (this.query.fields) {
+      fields = _.intersection(fields, this.query.fields.split(','));
+    }
+
+    let query = {creator: this.user};
+    let count = yield Role.where(query).count();
+    if (skip >= count) {
+      this.body = {
+        links: {},
+        data: []
+      };
+    }
+
     let roles = yield Role
-      .find({creator: this.user})
-      .select({
-        'name': 1,
-        'permissions.operation': 1,
-        'permissions.params': 1
-      })
+      .find(query)
+      .select(Util.keyArrayToObject(fields))
       .sort({createdAt: -1})
       .skip(skip)
       .limit(limit)
       .lean(true)
       .exec();
 
+    let links = {
+      self: url.resolve(this.baseUrl, '/roles') +
+        '?' + qs.stringify({limit, skip}),
+      last: url.resolve(this.baseUrl, '/roles') +
+        '?' + qs.stringify({
+          limit: count % limit,
+          skip: Math.floor(count / limit) * limit
+        })
+    };
+
+    if ((limit + skip) < count) {
+      links.next = url.resolve(this.baseUrl, '/roles') +
+        '?' + qs.stringify({limit, skip: limit + skip});
+    }
+
     this.body = {
-      links: {
-        self: url.resolve(this.baseUrl, '/roles') +
-          '?' + qs.stringify({limit, skip}),
-        next: url.resolve(this.baseUrl, '/roles') +
-          '?' + qs.stringify({limit, skip: limit})
-      },
-      data: _.map(roles, item => {
-        item.uri = url.resolve(this.baseUrl, '/roles/' + item._id);
-        return item;
+      links,
+      data: _.map(roles, role => {
+        role.uri = url.resolve(this.baseUrl, '/roles/' + role._id);
+        return role;
       })
     };
+  },
+  remove: function * () {
+    let role = yield Role
+      .findOneAndRemove({creator: this.user, _id: this.params.id})
+      .exec();
+
+    if (!role) {
+      throw new AppError('NOT_FOUND',
+        `${this.params.id} role does not exist.`);
+    }
+
+    this.status = 200;
   }
 };

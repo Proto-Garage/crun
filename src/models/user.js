@@ -6,6 +6,10 @@ import co from 'co';
 let Schema = mongoose.Schema;
 
 let schema = new Schema({
+  admin: {
+    type: Boolean,
+    default: false
+  },
   username: {
     type: String,
     required: true
@@ -60,6 +64,7 @@ schema.statics.verifyCredentials = function * (credentials) {
   return user;
 };
 
+schema.index({admin: 1});
 schema.index({username: 1}, {unique: true});
 schema.index({creator: 1});
 schema.index({createdAt: -1});

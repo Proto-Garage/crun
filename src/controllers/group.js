@@ -1,4 +1,4 @@
-/* globals Group, Command, AppError, GroupMemberCommand, GroupMemberGroup, GroupMember */
+/* globals Group, Command, AppError, GroupMemberCommand, GroupMemberGroup, GroupMember, Util */
 import _ from 'lodash';
 import url from 'url';
 import qs from 'querystring';
@@ -38,20 +38,13 @@ const castMembers = function(members) {
   }).compact().value();
 };
 
-const keyArrayToObject = function(keys) {
-  return _.reduce(keys, (accum, field) => {
-    accum[field] = 1;
-    return accum;
-  }, {});
-};
-
 const expandGroup = co.wrap(function * (member, fields = ['name', 'members']) {
   if (member.type === 'group') {
     let group = yield Group
       .findOne(member._id)
       .select(_.merge({
         _id: 0
-      }, keyArrayToObject(fields)))
+      }, Util.keyArrayToObject(fields)))
       .populate({path: 'members', select: {
         command: 1,
         group: 1,
@@ -84,7 +77,7 @@ const expandGroup = co.wrap(function * (member, fields = ['name', 'members']) {
       .findOne(member._id)
       .select(_.merge({
         _id: 0
-      }, keyArrayToObject(fields)))
+      }, Util.keyArrayToObject(fields)))
       .exec();
 
     if (!command) {
@@ -168,7 +161,7 @@ export let GroupController = {
 
     let groups = yield Group
       .find(query)
-      .select(keyArrayToObject(fields))
+      .select(Util.keyArrayToObject(fields))
       .populate({path: 'members', select: {
         command: 1,
         group: 1,
@@ -226,7 +219,7 @@ export let GroupController = {
 
     let group = yield Group
       .findOne({_id: this.params.id, creator: this.user})
-      .select(_.merge(keyArrayToObject(fields), {_id: 0}))
+      .select(_.merge(Util.keyArrayToObject(fields), {_id: 0}))
       .populate({path: 'members', select: {
         command: 1,
         group: 1,

@@ -1,10 +1,16 @@
 export default {
   RoleController: {
-    create: ['validCredentials', 'canCreateRole'],
-    find: ['validCredentials', 'canFindRole'],
-    findOne: ['validCredentials', 'validObjectId', 'canFindSingleRole'],
-    remove: ['validCredentials', 'validObjectId', 'canRemoveUser']
+    create: ['validCredentials'],
+    find: ['validCredentials'],
+    findOne: ['validCredentials', 'validObjectId'],
+    remove: ['validCredentials', 'validObjectId']
   },
+  // RoleController: {
+  //   create: ['validCredentials', 'canCreateRole'],
+  //   find: ['validCredentials', 'canFindRole'],
+  //   findOne: ['validCredentials', 'validObjectId', 'canFindSingleRole'],
+  //   remove: ['validCredentials', 'validObjectId', 'canRemoveUser']
+  // },
   UserController: {
     create: ['validCredentials', 'canCreateUser'],
     find: ['validCredentials', 'canFindUser'],
@@ -13,12 +19,19 @@ export default {
     update: ['validCredentials', 'validObjectId', 'canUpdateUser']
   },
   CommandController: {
-    create: ['validCredentials', 'canCreateCommand'],
-    find: ['validCredentials', 'canFindCommand'],
-    findOne: ['validCredentials', 'validObjectId', 'canFindSingleCommand'],
-    remove: ['validCredentials', 'validObjectId', 'canRemoveCommand'],
-    update: ['validCredentials', 'validObjectId', 'canUpdateCommand']
+    create: ['validCredentials'],
+    find: ['validCredentials'],
+    findOne: ['validCredentials', 'validObjectId'],
+    remove: ['validCredentials', 'validObjectId'],
+    update: ['validCredentials', 'validObjectId']
   },
+  // CommandController: {
+  //   create: ['validCredentials', 'canCreateCommand'],
+  //   find: ['validCredentials', 'canFindCommand'],
+  //   findOne: ['validCredentials', 'validObjectId', 'canFindSingleCommand'],
+  //   remove: ['validCredentials', 'validObjectId', 'canRemoveCommand'],
+  //   update: ['validCredentials', 'validObjectId', 'canUpdateCommand']
+  // },
   GroupController: {
     create: ['validCredentials', 'canCreateGroup'],
     find: ['validCredentials', 'canFindGroup'],

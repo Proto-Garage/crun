@@ -86,14 +86,21 @@ global.app.started = co(function * () {
     ]
   }, {upsert: true, new: true}).exec();
 
-  try {
+  let admin = yield User.findOne({admin: true}).exec();
+
+  if (admin) {
+    yield admin.update({
+      username: process.env.ADMIN_USERNAME,
+      password: process.env.ADMIN_PASSWORD
+    }).exec();
+  } else {
     let admin = new User({
       username: process.env.ADMIN_USERNAME,
       password: process.env.ADMIN_PASSWORD,
       roles: [role]
     });
     yield admin.save();
-  } catch (err) {}
+  }
 
   app
     .use(router.routes())
@@ -108,4 +115,3 @@ global.app.started = co(function * () {
 global.app.started.catch(function(err) {
   console.error(err, err.stack);
 });
-
