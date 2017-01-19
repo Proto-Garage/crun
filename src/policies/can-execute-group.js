@@ -9,5 +9,6 @@ export let canExecuteGroup = function * (next) {
   if (permissions.length === 0) {
     throw new AppError('FORBIDDEN', `Cannot execute group ${this.params.id}.`);
   }
+
   yield next;
 };

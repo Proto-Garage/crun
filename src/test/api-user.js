@@ -1,5 +1,4 @@
 /* globals app, User */
-/* eslint max-nested-callbacks: ["error", 6] */
 import {expect} from 'chai';
 import _ from 'lodash';
 import {generate as randString} from 'rand-token';

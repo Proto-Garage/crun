@@ -149,9 +149,21 @@ export let GroupController = {
       fields = _.intersection(fields, this.query.fields.split(','));
     }
 
-    let query = {creator: this.user};
+    let query = [{creator: this.user}];
+    let authorizedGroups = _(this.permissions)
+      .filter({operation: 'EXECUTE_GROUP'})
+      .map('scope')
+      .map('group')
+      .compact()
+      .uniq()
+      .value();
+    if (authorizedGroups.length > 0) {
+      query.push({
+        _id: {$in: authorizedGroups}
+      });
+    }
 
-    let count = yield Group.where(query).count();
+    let count = yield Group.where().or(query).count();
     if (skip >= count) {
       this.body = {
         links: {},
@@ -160,7 +172,8 @@ export let GroupController = {
     }
 
     let groups = yield Group
-      .find(query)
+      .find()
+      .or(query)
       .select(Util.keyArrayToObject(fields))
       .populate({path: 'members', select: {
         command: 1,
@@ -217,8 +230,11 @@ export let GroupController = {
       fields = _.intersection(fields, this.query.fields.split(','));
     }
 
+    let query = {_id: this.params.id};
+    query.creator = this.user;
+
     let group = yield Group
-      .findOne({_id: this.params.id, creator: this.user})
+      .findOne(query)
       .select(_.merge(Util.keyArrayToObject(fields), {_id: 0}))
       .populate({path: 'members', select: {
         command: 1,
