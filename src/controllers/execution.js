@@ -13,12 +13,8 @@ let executions = {};
 let ObjectId = mongoose.Types.ObjectId;
 
 const DEFAULT_FIELDS_LIST = [
-  'name',
-  'enabled',
-  'executionType',
-  'members',
-  'queue',
-  'createdAt'
+  'createdAt',
+  'status'
 ];
 
 export let ExecutionController = {
@@ -50,14 +46,17 @@ export let ExecutionController = {
     co(function * () {
       let promise = new Promise(function(resolve) {
         executions[executionId].on('status', status => {
-          let update = extractStatus(executions[executionId]);
-          Execution.update({_id: executionId}, {status: update})
-            .exec()
-            .then(function() {
-              if (status === STATUS.SUCCEEDED || status === STATUS.FAILED) {
-                resolve();
-              }
-            });
+          let group = executions[executionId];
+          if (group) {
+            let update = extractStatus(group);
+            Execution.update({_id: executionId}, {status: update})
+              .exec()
+              .then(function() {
+                if (status === STATUS.SUCCEEDED || status === STATUS.FAILED) {
+                  resolve();
+                }
+              });
+          }
         });
       });
 
@@ -77,7 +76,7 @@ export let ExecutionController = {
 
     let execution = yield Execution
       .findOne({_id: this.params.id, creator: this.user})
-      .select(_.merge(Util.keyArrayToObject(fields), {_id: 0}))
+      .select(Util.keyArrayToObject(fields))
       .lean(true)
       .exec();
 
@@ -87,7 +86,7 @@ export let ExecutionController = {
     }
 
     let executionId = execution._id.toHexString();
-    if (executions[executionId]) {
+    if (executions[executionId] && _.includes(fields, 'status')) {
       execution.status = extractStatus(executions[executionId]);
     }
 
@@ -129,7 +128,7 @@ export let ExecutionController = {
 
     _.each(data, execution => {
       let executionId = execution._id.toHexString();
-      if (executions[executionId]) {
+      if (executions[executionId] && _.includes(fields, 'status')) {
         execution.status = extractStatus(executions[executionId]);
       }
     });

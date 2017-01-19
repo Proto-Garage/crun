@@ -2,10 +2,8 @@
 import _ from 'lodash';
 
 export let canCreateCommand = function * (next) {
-  let permissions = _(this.user.roles)
-    .map('permissions')
-    .flatten()
-    .filter({operation: 'WRITE_COMMAND', command: 'all'})
+  let permissions = _(this.permissions)
+    .filter({operation: 'CREATE_COMMAND'})
     .value();
 
   if (permissions.length === 0) {

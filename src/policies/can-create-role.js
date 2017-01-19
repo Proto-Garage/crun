@@ -2,10 +2,8 @@
 import _ from 'lodash';
 
 export let canCreateRole = function * (next) {
-  let permissions = _(this.user.roles)
-    .map('permissions')
-    .flatten()
-    .filter({operation: 'WRITE_ROLE', role: 'all'})
+  let permissions = _(this.permissions)
+    .filter({operation: 'CREATE_ROLE'})
     .value();
 
   if (permissions.length === 0) {

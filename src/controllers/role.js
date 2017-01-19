@@ -38,6 +38,23 @@ export let RoleController = {
     };
     this.status = 201;
   },
+  update: function * () {
+    let params = _.pick(this.request.body, [
+      'name',
+      'permissions'
+    ]);
+
+    let role = yield Role
+      .findOneAndUpdate({_id: this.params.id, creator: this.user}, params)
+      .exec();
+
+    if (!role) {
+      throw new AppError('NOT_FOUND',
+        `${this.params.id} role does not exist.`);
+    }
+
+    this.status = 200;
+  },
   findOne: function * () {
     let fields = DEFAULT_FIELDS_LIST;
     if (this.query.fields) {

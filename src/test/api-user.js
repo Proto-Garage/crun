@@ -2,7 +2,7 @@
 /* eslint max-nested-callbacks: ["error", 6] */
 import {expect} from 'chai';
 import _ from 'lodash';
-import rand from 'rand-token';
+import {generate as randString} from 'rand-token';
 import mongoose from 'mongoose';
 
 let ObjectId = mongoose.Types.ObjectId;
@@ -33,7 +33,7 @@ describe('CRUN API', function() {
       before(function * () {
         let result = yield request
           .post('/roles')
-          .send({name: 'test', operations: [
+          .send({name: 'role ' + randString(8), operations: [
             {name: 'WRITE_COMMAND'},
             {name: 'READ_COMMAND'},
             {name: 'WRITE_GROUP'},
@@ -48,8 +48,8 @@ describe('CRUN API', function() {
 
       it('should create new user', function * () {
         let params = {
-          username: 'users_' + rand.generate(6),
-          password: rand.generate(16),
+          username: 'users_' + randString(6),
+          password: randString(16),
           roles: [role._id]
         };
 
@@ -75,7 +75,7 @@ describe('CRUN API', function() {
 
       it('should return invalid request', function * () {
         let params = {
-          username: 'users_' + rand.generate(6)
+          username: 'users_' + randString(6)
         };
 
         yield request
@@ -91,8 +91,8 @@ describe('CRUN API', function() {
 
     describe('DELETE /users/:id', function() {
       let user = {
-        username: 'users_' + rand.generate(6),
-        password: rand.generate(16)
+        username: 'users_' + randString(6),
+        password: randString(16)
       };
       before(function * () {
         let result = yield request
@@ -117,8 +117,8 @@ describe('CRUN API', function() {
 
     describe('GET /users/:id', function() {
       let user = {
-        username: 'users_' + rand.generate(6),
-        password: rand.generate(16)
+        username: 'users_' + randString(6),
+        password: randString(16)
       };
       before(function * () {
         let result = yield request
@@ -163,8 +163,8 @@ describe('CRUN API', function() {
           return request
             .post('/users')
             .send({
-              username: 'users_' + rand.generate(6),
-              password: rand.generate(16)
+              username: 'users_' + randString(6),
+              password: randString(16)
             })
             .auth(admin.username, admin.password)
             .expect(201);

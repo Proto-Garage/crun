@@ -75,17 +75,9 @@ global.app.started = co(function * () {
   let role = yield Role.findOneAndUpdate({name: 'superuser'}, {
     permissions: [
       {operation: 'CREATE_USER'},
-      {operation: 'READ_USER'},
-      {operation: 'UPDATE_USER'},
       {operation: 'CREATE_ROLE'},
-      {operation: 'READ_ROLE'},
-      {operation: 'UPDATE_ROLE'},
       {operation: 'CREATE_COMMAND'},
-      {operation: 'READ_COMMAND'},
-      {operation: 'UPDATE_COMMAND'},
       {operation: 'CREATE_GROUP'},
-      {operation: 'READ_GROUP'},
-      {operation: 'UPDATE_GROUP'},
       {operation: 'EXECUTE_GROUP'}
     ]
   }, {upsert: true, new: true}).exec();

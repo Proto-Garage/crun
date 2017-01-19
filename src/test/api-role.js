@@ -81,7 +81,7 @@ describe('CRUN API', function() {
             .post('/roles')
             .send({
               name: 'superman', permissions: [{
-                operation: 'UPDATE_COMMAND',
+                operation: 'CREATE_COMMAND',
                 scope: {
                   command: command._id
                 }
@@ -102,21 +102,13 @@ describe('CRUN API', function() {
 
     describe('GET /roles/:id', function() {
       let role;
-      let command;
 
       before(function * () {
         let result = yield request
-          .post('/commands')
-          .send({name: 'command ' + randString(8), command: 'sleep 2'})
-          .auth(admin.username, admin.password)
-          .expect(201);
-        command = result.body;
-
-        result = yield request
           .post('/roles')
           .send({name: 'test', permissions: [
             {operation: 'CREATE_COMMAND'},
-            {operation: 'READ_COMMAND', scope: {command: command._id}}
+            {operation: 'CREATE_GROUP'}
           ]})
           .auth(admin.username, admin.password)
           .expect(201);
@@ -172,21 +164,13 @@ describe('CRUN API', function() {
 
     describe('DELETE /roles/:id', function() {
       let role;
-      let command;
 
       before(function * () {
         let result = yield request
-          .post('/commands')
-          .send({name: 'command ' + randString(8), command: 'sleep 2'})
-          .auth(admin.username, admin.password)
-          .expect(201);
-        command = result.body;
-
-        result = yield request
           .post('/roles')
-          .send({name: 'test', permissions: [
+          .send({name: 'role ' + randString(8), permissions: [
             {operation: 'CREATE_COMMAND'},
-            {operation: 'READ_COMMAND', scope: {command: command._id}}
+            {operation: 'CREATE_GROUP'}
           ]})
           .auth(admin.username, admin.password)
           .expect(201);
