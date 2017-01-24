@@ -1,6 +1,7 @@
 export default {
   'GET /': 'PageController.index',
   'POST /authenticate': 'AuthenticationController.authenticate',
+  'POST /refreshToken': 'AuthenticationController.refreshToken',
   'GET /users': 'UserController.find',
   'GET /users/:id': 'UserController.findOne',
   'DELETE /users/:id': 'UserController.remove',

@@ -1,7 +1,7 @@
 /* globals app, User, Role */
-/* eslint max-nested-callbacks: ["error", 6]*/
 import {expect} from 'chai';
-import rand from 'rand-token';
+import {generate as randString} from 'rand-token';
+import _ from 'lodash';
 
 let request;
 
@@ -30,7 +30,7 @@ describe('CRUN API', function() {
     });
   });
 
-  describe('Authentication (POST)', function() {
+  describe('POST /authenticate', function() {
     let user;
     let role;
 
@@ -48,8 +48,8 @@ describe('CRUN API', function() {
       yield role.save();
 
       user = new User({
-        username: 'test_user_' + rand.generate(8),
-        password: rand.generate(26),
+        username: 'test_user_' + randString(8),
+        password: randString(26),
         roles: [role]
       });
       yield user.save();
@@ -93,6 +93,38 @@ describe('CRUN API', function() {
           .set('Authorization', 'Access ' + token.accessToken)
           .expect(200);
       });
+
+      describe('POST /refreshToken', function() {
+        describe('Given valid parameters', function() {
+          it('should create new access token', function * () {
+            let accessToken;
+            yield request
+              .post('/refreshToken')
+              .send(_.pick(token, 'refreshToken'))
+              .expect(200)
+              .expect(function(res) {
+                expect(res.body).to.has.property('accessToken');
+                accessToken = res.body.accessToken;
+              });
+
+            yield request
+              .get('/roles')
+              .set('Authorization', 'Access ' + accessToken)
+              .expect(200);
+          });
+        });
+        describe('Given invalid parameters', function() {
+          it('should return 400', function * () {
+            yield request
+              .post('/refreshToken')
+              .send({refreshToken: randString(32)})
+              .expect(400)
+              .expect(function(res) {
+                expect(res.body).to.has.property('code', 'INVALID_REQUEST');
+              });
+          });
+        });
+      });
     });
 
     describe('Given invalid credentials', function() {
@@ -115,6 +147,15 @@ describe('CRUN API', function() {
             username: user.username,
             password: user.rawPassword + '0'
           })
+          .expect(function(res) {
+            expect(res.body).to.has.property('code', 'UNAUTHORIZED');
+          })
+          .expect(401);
+      });
+      it('should return 401', function * () {
+        yield request
+          .get('/roles')
+          .set('Authorization', 'Access ' + randString(32))
           .expect(function(res) {
             expect(res.body).to.has.property('code', 'UNAUTHORIZED');
           })
