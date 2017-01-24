@@ -1,4 +1,10 @@
 export default {
+  APITokenController: {
+    create: ['validCredentials'],
+    find: ['validCredentials'],
+    findOne: ['validCredentials', 'validObjectId'],
+    remove: ['validCredentials', 'validObjectId']
+  },
   RoleController: {
     create: ['validCredentials', 'canCreateRole'],
     find: ['validCredentials'],
