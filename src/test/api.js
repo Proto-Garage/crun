@@ -38,15 +38,11 @@ describe('CRUN API', function() {
       role = new Role({
         name: 'admin',
         permissions: [
-          {operation: 'WRITE_USER', user: 'all'},
-          {operation: 'READ_USER', user: 'all'},
-          {operation: 'WRITE_ROLE', role: 'all'},
-          {operation: 'READ_ROLE', role: 'all'},
-          {operation: 'WRITE_COMMAND', command: 'all'},
-          {operation: 'READ_COMMAND', command: 'all'},
-          {operation: 'WRITE_GROUP', group: 'all'},
-          {operation: 'READ_GROUP', group: 'all'},
-          {operation: 'EXECUTE_GROUP', group: 'all'}
+          {operation: 'CREATE_USER'},
+          {operation: 'CREATE_COMMAND'},
+          {operation: 'CREATE_GROUP'},
+          {operation: 'CREATE_ROLE'},
+          {operation: 'EXECUTE_GROUP'}
         ]
       });
       yield role.save();
@@ -65,6 +61,8 @@ describe('CRUN API', function() {
     });
 
     describe('Given valid credentials', function() {
+      let token;
+
       it('should return access token and refresh token', function * () {
         yield request
           .post('/authenticate')
@@ -75,7 +73,24 @@ describe('CRUN API', function() {
           .expect(function(res) {
             expect(res.body).to.has.property('refreshToken');
             expect(res.body).to.has.property('accessToken');
+
+            let refreshToken = JSON.parse(new Buffer(
+              res.body.refreshToken.match(/^.+\.(.+)\..+$/)[1], 'base64'));
+            let accessToken = JSON.parse(new Buffer(
+              res.body.accessToken.match(/^.+\.(.+)\..+$/)[1], 'base64'));
+
+            expect(refreshToken).to.has.property('user', user._id.toString());
+            expect(accessToken).to.has.property('user', user._id.toString());
+
+            token = res.body;
           })
+          .expect(200);
+      });
+
+      it('should return 200', function * () {
+        yield request
+          .get('/roles')
+          .set('Authorization', 'Access ' + token.accessToken)
           .expect(200);
       });
     });

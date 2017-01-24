@@ -18,6 +18,7 @@ export let AuthenticationController = {
       type: 'refresh',
       iss: 'CRUN',
       jti: token.jti,
+      user: user._id,
       iat: Math.round(now.getTime() / 1000),
       exp: Math.round((now.getTime() + REFRESH_TOKEN_TTL) / 1000)
     }, JWT_SECRET, 'HS512');
@@ -25,6 +26,7 @@ export let AuthenticationController = {
     let accessToken = jwt.encode({
       type: 'access',
       iss: 'CRUN',
+      user: user._id,
       iat: Math.round(now.getTime() / 1000),
       exp: Math.round((now.getTime() + ACCESS_TOKEN_TTL) / 1000)
     }, JWT_SECRET, 'HS512');

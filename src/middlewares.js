@@ -8,7 +8,8 @@ let statusCodes = {
   INVALID_ROLE_OPERATION: 400,
   NOT_FOUND: 404,
   FORBIDDEN: 403,
-  INVALID_REQUEST: 400
+  INVALID_REQUEST: 400,
+  TOKEN_EXPIRED: 401
 };
 
 export default [
