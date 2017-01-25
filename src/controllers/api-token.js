@@ -119,5 +119,21 @@ export let APITokenController = {
     };
   },
   remove: function * () {
+    let token = yield APIToken
+      .findOne({_id: this.params.id})
+      .exec();
+
+    if (!token) {
+      throw new AppError('NOT_FOUND',
+        `${this.params.id} token does not exist.`);
+    }
+
+    if (token.creator.toString() !== this.user._id.toString()) {
+      throw new AppError('FORBIDDEN',
+        `Cannot delete token ${this.params.id}.`);
+    }
+
+    yield token.remove();
+    this.status = 200;
   }
 };

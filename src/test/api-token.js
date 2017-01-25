@@ -168,5 +168,45 @@ describe('CRUN API', function() {
           });
       });
     });
+
+    describe('DELETE /tokens/:id', function() {
+      let apiToken;
+      before(function * () {
+        let user = yield User
+          .findOne({username: admin.username})
+          .exec();
+
+        apiToken = new APIToken({
+          owner: user,
+          creator: user
+        });
+        yield apiToken.save();
+      });
+
+      after(function * () {
+        yield apiToken.remove();
+      });
+
+      describe('Given an existing token', function() {
+        it('should remove token', function * () {
+          yield request
+            .delete('/tokens/' + apiToken._id)
+            .auth(admin.username, admin.password)
+            .expect(200);
+        });
+      });
+
+      describe('Given a non-existing token', function() {
+        it('should return 404', function * () {
+          yield request
+            .delete('/tokens/' + new ObjectId())
+            .auth(admin.username, admin.password)
+            .expect(404)
+            .expect(res => {
+              expect(res.body).to.has.property('code', 'NOT_FOUND');
+            });
+        });
+      });
+    });
   });
 });
