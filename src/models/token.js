@@ -20,7 +20,7 @@ let schema = new Schema({
   }
 });
 
-schema.statics.cleanUp = function * () {
+schema.statics.cleanUp = function* () {
   yield this
     .model('User')
     .remove({createdAt: {

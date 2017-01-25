@@ -18,7 +18,7 @@ const DEFAULT_FIELDS_LIST = [
 ];
 
 export let ExecutionController = {
-  create: function * () {
+  create: function* () {
     let params = _.pick(this.request.body, [
       'group'
     ]);
@@ -43,7 +43,7 @@ export let ExecutionController = {
 
     executions[executionId] = group;
 
-    co(function * () {
+    co(function* () {
       let promise = new Promise(function(resolve) {
         executions[executionId].on('status', status => {
           let group = executions[executionId];
@@ -68,7 +68,7 @@ export let ExecutionController = {
       console.error(err);
     });
   },
-  findOne: function * () {
+  findOne: function* () {
     let fields = DEFAULT_FIELDS_LIST;
     if (this.query.fields) {
       fields = _.intersection(fields, this.query.fields.split(','));
@@ -97,7 +97,7 @@ export let ExecutionController = {
       data: _.omit(execution, '_id')
     };
   },
-  find: function * () {
+  find: function* () {
     let limit = Number.parseInt(this.query.limit, 10) || 10;
     let skip = Number.parseInt(this.query.skip, 10) || 0;
 

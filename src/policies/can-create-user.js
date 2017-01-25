@@ -1,7 +1,7 @@
 /* globals AppError */
 import _ from 'lodash';
 
-export let canCreateUser = function * (next) {
+export let canCreateUser = function* (next) {
   let permissions = _(this.permissions)
     .filter({operation: 'CREATE_USER'})
     .value();

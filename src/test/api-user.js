@@ -16,12 +16,12 @@ describe('CRUN API', function() {
     password: process.env.ADMIN_PASSWORD
   };
 
-  before(function * () {
+  before(function* () {
     yield app.started;
     request = require('supertest')(app.server);
   });
 
-  after(function * () {
+  after(function* () {
     app.server.close();
   });
 
@@ -29,7 +29,7 @@ describe('CRUN API', function() {
     describe('POST /users', function() {
       let role;
 
-      before(function * () {
+      before(function* () {
         let result = yield request
           .post('/roles')
           .send({name: 'role ' + randString(8), operations: [
@@ -45,7 +45,7 @@ describe('CRUN API', function() {
         role = result.body;
       });
 
-      it('should create new user', function * () {
+      it('should create new user', function* () {
         let params = {
           username: 'users_' + randString(6),
           password: randString(16),
@@ -72,7 +72,7 @@ describe('CRUN API', function() {
         expect(user).to.has.property('roles');
       });
 
-      it('should return invalid request', function * () {
+      it('should return invalid request', function* () {
         let params = {
           username: 'users_' + randString(6)
         };
@@ -93,7 +93,7 @@ describe('CRUN API', function() {
         username: 'users_' + randString(6),
         password: randString(16)
       };
-      before(function * () {
+      before(function* () {
         let result = yield request
           .post('/users')
           .send(user)
@@ -103,7 +103,7 @@ describe('CRUN API', function() {
         user._id = result.body._id;
       });
 
-      it('should remove single user', function * () {
+      it('should remove single user', function* () {
         yield request
           .delete('/users/' + user._id)
           .auth(admin.username, admin.password)
@@ -119,7 +119,7 @@ describe('CRUN API', function() {
         username: 'users_' + randString(6),
         password: randString(16)
       };
-      before(function * () {
+      before(function* () {
         let result = yield request
           .post('/users')
           .send(user)
@@ -129,7 +129,7 @@ describe('CRUN API', function() {
         user._id = result.body._id;
       });
 
-      it('should retrieve single user', function * () {
+      it('should retrieve single user', function* () {
         yield request
           .get('/users/' + user._id)
           .auth(admin.username, admin.password)
@@ -145,7 +145,7 @@ describe('CRUN API', function() {
           });
       });
 
-      it('should return NOT_FOUND', function * () {
+      it('should return NOT_FOUND', function* () {
         yield request
           .get('/users/' + new ObjectId().toHexString())
           .auth(admin.username, admin.password)
@@ -157,7 +157,7 @@ describe('CRUN API', function() {
     });
 
     describe('GET /users', function() {
-      before(function * () {
+      before(function* () {
         yield _.times(10, () => {
           return request
             .post('/users')
@@ -170,7 +170,7 @@ describe('CRUN API', function() {
         });
       });
 
-      it('should retrieve users', function * () {
+      it('should retrieve users', function* () {
         let result = yield request
           .get('/users')
           .auth(admin.username, admin.password)
@@ -189,7 +189,7 @@ describe('CRUN API', function() {
           });
 
         yield _.map(result.body.data, item => {
-          return function * () {
+          return function* () {
             let user = yield User.findById(item._id).exec();
             expect(user).to.not.equal(null);
           };

@@ -16,18 +16,18 @@ describe('CRUN API', function() {
     password: process.env.ADMIN_PASSWORD
   };
 
-  before(function * () {
+  before(function* () {
     yield app.started;
     request = require('supertest')(app.server);
   });
 
-  after(function * () {
+  after(function* () {
     app.server.close();
   });
 
   describe('Roles', function() {
     describe('POST /roles', function() {
-      it('should return INVALID_ROLE_OPERATION', function * () {
+      it('should return INVALID_ROLE_OPERATION', function* () {
         yield request
           .post('/roles')
           .send({name: 'staging', permissions: [
@@ -40,7 +40,7 @@ describe('CRUN API', function() {
           .expect(400);
       });
 
-      it('should return validation error', function * () {
+      it('should return validation error', function* () {
         yield request
           .post('/roles')
           .send({permissions: [{operation: 'CREATE_COMMAND'}]})
@@ -51,7 +51,7 @@ describe('CRUN API', function() {
           .expect(400);
       });
 
-      it('should create new role', function * () {
+      it('should create new role', function* () {
         let result = yield request
           .post('/roles')
           .send({name: 'staging', permissions: [{operation: 'CREATE_COMMAND'}]})
@@ -68,7 +68,7 @@ describe('CRUN API', function() {
 
       describe('Given a valid scope', function() {
         let command;
-        before(function * () {
+        before(function* () {
           let result = yield request
             .post('/commands')
             .send({name: 'command ' + randString(8), command: 'sleep 2'})
@@ -76,7 +76,7 @@ describe('CRUN API', function() {
             .expect(201);
           command = result.body;
         });
-        it('should create new role', function * () {
+        it('should create new role', function* () {
           let result = yield request
             .post('/roles')
             .send({
@@ -103,7 +103,7 @@ describe('CRUN API', function() {
     describe('GET /roles/:id', function() {
       let role;
 
-      before(function * () {
+      before(function* () {
         let result = yield request
           .post('/roles')
           .send({name: 'test', permissions: [
@@ -116,7 +116,7 @@ describe('CRUN API', function() {
         role = result.body;
       });
 
-      it('should return single role', function * () {
+      it('should return single role', function* () {
         yield request
           .get('/roles/' + role._id)
           .auth(admin.username, admin.password)
@@ -131,7 +131,7 @@ describe('CRUN API', function() {
           });
       });
 
-      it('should return NOT_FOUND', function * () {
+      it('should return NOT_FOUND', function* () {
         yield request
           .get('/roles/' + new ObjectId().toHexString())
           .auth(admin.username, admin.password)
@@ -143,7 +143,7 @@ describe('CRUN API', function() {
     });
 
     describe('GET /roles', function() {
-      it('should return all roles', function * () {
+      it('should return all roles', function* () {
         yield request
           .get('/roles')
           .auth(admin.username, admin.password)
@@ -165,7 +165,7 @@ describe('CRUN API', function() {
     describe('DELETE /roles/:id', function() {
       let role;
 
-      before(function * () {
+      before(function* () {
         let result = yield request
           .post('/roles')
           .send({name: 'role ' + randString(8), permissions: [
@@ -178,7 +178,7 @@ describe('CRUN API', function() {
         role = result.body;
       });
 
-      it('should return single role', function * () {
+      it('should return single role', function* () {
         yield request
           .delete('/roles/' + role._id)
           .auth(admin.username, admin.password)
@@ -188,7 +188,7 @@ describe('CRUN API', function() {
         expect(testRole).to.equal(null);
       });
 
-      it('should return NOT_FOUND', function * () {
+      it('should return NOT_FOUND', function* () {
         yield request
           .get('/roles/' + new ObjectId().toHexString())
           .auth(admin.username, admin.password)

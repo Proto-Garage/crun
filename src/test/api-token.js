@@ -16,12 +16,12 @@ describe('CRUN API', function() {
     password: process.env.ADMIN_PASSWORD
   };
 
-  before(function * () {
+  before(function* () {
     yield app.started;
     request = require('supertest')(app.server);
   });
 
-  after(function * () {
+  after(function* () {
     app.server.close();
   });
 
@@ -29,12 +29,12 @@ describe('CRUN API', function() {
     describe('POST /tokens', function() {
       let apiToken;
 
-      after(function * () {
+      after(function* () {
         yield APIToken
           .remove({token: apiToken.token})
           .exec();
       });
-      it('should create new token', function * () {
+      it('should create new token', function* () {
         let result = yield request
           .post('/tokens')
           .auth(admin.username, admin.password)
@@ -55,7 +55,7 @@ describe('CRUN API', function() {
     describe('GET /tokens/:id', function() {
       describe('Given an existing token', function() {
         let apiToken;
-        before(function * () {
+        before(function* () {
           let user = yield User
             .findOne({username: admin.username})
             .exec();
@@ -67,13 +67,13 @@ describe('CRUN API', function() {
           yield apiToken.save();
         });
 
-        after(function * () {
+        after(function* () {
           yield APIToken
             .remove(apiToken._id)
             .exec();
         });
 
-        it('should retrieve token', function * () {
+        it('should retrieve token', function* () {
           yield request
             .get('/tokens/' + apiToken._id)
             .auth(admin.username, admin.password)
@@ -91,7 +91,7 @@ describe('CRUN API', function() {
       });
 
       describe('Given a non-existing token', function() {
-        it('should return 404', function * () {
+        it('should return 404', function* () {
           yield request
             .get('/tokens/' + new ObjectId())
             .auth(admin.username, admin.password)
@@ -106,7 +106,7 @@ describe('CRUN API', function() {
     describe('GET /tokens', function() {
       let apiTokens;
       const NUM_API_TOKENS = 15;
-      before(function * () {
+      before(function* () {
         let user = yield User
           .findOne({username: admin.username})
           .exec();
@@ -120,13 +120,13 @@ describe('CRUN API', function() {
         });
       });
 
-      after(function * () {
+      after(function* () {
         yield Promise.map(apiTokens, apiToken => {
           return apiToken.remove();
         });
       });
 
-      it('should retrieve tokens', function * () {
+      it('should retrieve tokens', function* () {
         yield request
           .get('/tokens')
           .auth(admin.username, admin.password)
@@ -146,7 +146,7 @@ describe('CRUN API', function() {
           });
       });
 
-      it('should retrieve tokens', function * () {
+      it('should retrieve tokens', function* () {
         yield request
           .get('/tokens')
           .query({
@@ -171,7 +171,7 @@ describe('CRUN API', function() {
 
     describe('DELETE /tokens/:id', function() {
       let apiToken;
-      before(function * () {
+      before(function* () {
         let user = yield User
           .findOne({username: admin.username})
           .exec();
@@ -183,12 +183,12 @@ describe('CRUN API', function() {
         yield apiToken.save();
       });
 
-      after(function * () {
+      after(function* () {
         yield apiToken.remove();
       });
 
       describe('Given an existing token', function() {
-        it('should remove token', function * () {
+        it('should remove token', function* () {
           yield request
             .delete('/tokens/' + apiToken._id)
             .auth(admin.username, admin.password)
@@ -197,7 +197,7 @@ describe('CRUN API', function() {
       });
 
       describe('Given a non-existing token', function() {
-        it('should return 404', function * () {
+        it('should return 404', function* () {
           yield request
             .delete('/tokens/' + new ObjectId())
             .auth(admin.username, admin.password)

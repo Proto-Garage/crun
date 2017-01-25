@@ -6,7 +6,7 @@ describe('Queue', function() {
   this.timeout(20000);
 
   describe('Given an empty queue', function() {
-    it('should be able to acquire token', function * () {
+    it('should be able to acquire token', function* () {
       const QUEUE = 'queue ' + rand.generate(8);
       let token = yield acquireToken(QUEUE);
       expect(token).to.has.property('queue', QUEUE);
@@ -16,7 +16,7 @@ describe('Queue', function() {
   });
 
   describe('Given a non-empty queue', function() {
-    it('should queue next acquisition of token', function * () {
+    it('should queue next acquisition of token', function* () {
       const QUEUE = 'queue ' + rand.generate(8);
 
       let timestamp = Date.now();

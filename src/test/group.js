@@ -9,7 +9,7 @@ describe('Group', function() {
   this.timeout(20000);
 
   describe('Series', function() {
-    it('should run group', function * () {
+    it('should run group', function* () {
       let command = new Command({
         command: [
           'echo "start"',
@@ -37,7 +37,7 @@ describe('Group', function() {
       expect(Date.now() - timestamp).to.below(1500);
     });
 
-    it('should run group', function * () {
+    it('should run group', function* () {
       const NUM_COMMANDS = 5;
 
       let commands = _.map(_.range(NUM_COMMANDS), () => new Command({
@@ -74,7 +74,7 @@ describe('Group', function() {
   });
 
   describe('Parallel', function() {
-    it('should run group', function * () {
+    it('should run group', function* () {
       const NUM_COMMANDS = 5;
 
       let commands = _.map(_.range(NUM_COMMANDS), () => new Command({
@@ -111,7 +111,7 @@ describe('Group', function() {
   });
 
   describe('Nested', function() {
-    it('should run group', function * () {
+    it('should run group', function* () {
       const NUM_COMMANDS = 3;
 
       let commands = _.map(_.range(NUM_COMMANDS), index => new Command({
@@ -153,7 +153,7 @@ describe('Group', function() {
       expect(Date.now() - timestamp).to.below(2500);
     });
 
-    it('should queue groups', function * () {
+    it('should queue groups', function* () {
       const NUM_COMMANDS = 4;
 
       let commands = _.map(_.range(NUM_COMMANDS), index => new Command({
@@ -189,7 +189,7 @@ describe('Group', function() {
   });
 
   describe('Status', function() {
-    it('should extract status', function * () {
+    it('should extract status', function* () {
       const NUM_COMMANDS = 3;
 
       let commands = _.map(_.range(NUM_COMMANDS), index => new Command({
@@ -250,9 +250,9 @@ describe('Group', function() {
       expect(status).to.has.deep
         .property('members[1].members[1].log');
 
-      yield [function * () {
+      yield [function* () {
         yield groupTwo.run();
-      }, function * () {
+      }, function* () {
         yield Util.delay(500);
         let status = extractStatus(groupTwo);
         expect(status).to.has.deep.property('status', 'STARTED');

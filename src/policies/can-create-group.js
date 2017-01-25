@@ -1,7 +1,7 @@
 /* globals AppError */
 import _ from 'lodash';
 
-export let canCreateGroup = function * (next) {
+export let canCreateGroup = function* (next) {
   let permissions = _(this.permissions)
     .filter({operation: 'CREATE_GROUP'})
     .value();

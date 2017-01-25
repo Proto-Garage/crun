@@ -5,7 +5,7 @@ describe('Command', function() {
   this.timeout(20000);
 
   describe('Given default options', function() {
-    it('should run command', function * () {
+    it('should run command', function* () {
       let command = new Command({
         command: [
           'echo "start"',
@@ -31,7 +31,7 @@ describe('Command', function() {
   });
 
   describe('Given invalid command', function() {
-    it('should throw error', function * () {
+    it('should throw error', function* () {
       let command = new Command({
         command: 'crun'
       });

@@ -18,24 +18,24 @@ describe('CRUN API', function() {
     password: process.env.ADMIN_PASSWORD
   };
 
-  before(function * () {
+  before(function* () {
     yield app.started;
     request = require('supertest')(app.server);
   });
 
-  after(function * () {
+  after(function* () {
     app.server.close();
   });
 
   describe('Groups', function() {
     describe('POST /groups', function() {
-      after(function * () {
+      after(function* () {
         yield Group.remove().exec();
         yield Command.remove().exec();
       });
       describe('Given valid parameters', function() {
         let command;
-        before(function * () {
+        before(function* () {
           let result = yield request
             .post('/commands')
             .send({name: 'sleepy-head', command: 'sleep 2'})
@@ -44,7 +44,7 @@ describe('CRUN API', function() {
 
           command = result.body;
         });
-        it('should create new group', function * () {
+        it('should create new group', function* () {
           let group = {
             name: 'group ' + randString(12),
             members: [{
@@ -71,7 +71,7 @@ describe('CRUN API', function() {
       });
       describe('Given invalid parameters', function() {
         describe('Given an invalid member command', function() {
-          it('should return 400', function * () {
+          it('should return 400', function* () {
             let group = {
               name: 'group ' + randString(12),
               members: [{
@@ -91,7 +91,7 @@ describe('CRUN API', function() {
           });
         });
         describe('Given missing required parameters', function() {
-          it('should return 400', function * () {
+          it('should return 400', function* () {
             let group = {
               queue: 'test'
             };
@@ -107,7 +107,7 @@ describe('CRUN API', function() {
         });
       });
       describe('Given a non-existing member', function() {
-        it('should return 400', function * () {
+        it('should return 400', function* () {
           let group = {
             name: 'group ' + randString(12),
             members: [{
@@ -127,8 +127,8 @@ describe('CRUN API', function() {
         });
       });
       describe('Given a valid member group', function() {
-        it('should create new group', function * () {
-          let commands = yield Promise.map(_.range(4), co.wrap(function * () {
+        it('should create new group', function* () {
+          let commands = yield Promise.map(_.range(4), co.wrap(function* () {
             let payload = {
               name: 'command ' + randString(8),
               command: 'sleep 1'
@@ -213,8 +213,8 @@ describe('CRUN API', function() {
     });
 
     describe('GET /groups', function() {
-      before(function * () {
-        let commands = yield Promise.map(_.range(15), co.wrap(function * () {
+      before(function* () {
+        let commands = yield Promise.map(_.range(15), co.wrap(function* () {
           let command;
 
           {
@@ -235,7 +235,7 @@ describe('CRUN API', function() {
           return command;
         }), {concurrency: 5});
 
-        yield Promise.map(_.take(commands, 13), co.wrap(function * (command) {
+        yield Promise.map(_.take(commands, 13), co.wrap(function* (command) {
           let payload = {
             name: 'group ' + randString(12),
             members: [{
@@ -294,12 +294,12 @@ describe('CRUN API', function() {
             .expect(201);
         }
       });
-      after(function * () {
+      after(function* () {
         yield Group.remove().exec();
         yield Command.remove().exec();
       });
 
-      it('should retrieve first 10 groups', function * () {
+      it('should retrieve first 10 groups', function* () {
         yield request
           .get('/groups')
           .auth(admin.username, admin.password)
@@ -326,7 +326,7 @@ describe('CRUN API', function() {
       });
 
       it('should retrieve first 10 groups with expanded members',
-      function * () {
+      function* () {
         yield request
           .get('/groups')
           .query({expand: 1})
@@ -368,7 +368,7 @@ describe('CRUN API', function() {
           .expect(200);
       });
 
-      it('should retrieve remaining groups', function * () {
+      it('should retrieve remaining groups', function* () {
         yield request
           .get('/groups?skip=10')
           .auth(admin.username, admin.password)
@@ -400,7 +400,7 @@ describe('CRUN API', function() {
           password: randString(16)
         };
 
-        before(function * () {
+        before(function* () {
           let result = yield request
             .post('/users')
             .send(user)
@@ -414,7 +414,7 @@ describe('CRUN API', function() {
           user = _.merge(user, result.body);
         });
 
-        it('should return no group', function * () {
+        it('should return no group', function* () {
           yield request
             .get('/groups')
             .auth(user.username, user.password)
@@ -427,7 +427,7 @@ describe('CRUN API', function() {
         describe('Given EXECUTE_GROUP permission', function() {
           let groups;
 
-          before(function * () {
+          before(function* () {
             let result = yield request
               .get('/groups')
               .query({limit: 2})
@@ -463,7 +463,7 @@ describe('CRUN API', function() {
               .expect(200);
           });
 
-          it('should retrieve authorized groups', function * () {
+          it('should retrieve authorized groups', function* () {
             yield request
               .get('/groups')
               .auth(user.username, user.password)
@@ -482,8 +482,8 @@ describe('CRUN API', function() {
     describe('GET /groups/:id', function() {
       let group;
 
-      before(function * () {
-        let commands = yield Promise.map(_.range(2), co.wrap(function * () {
+      before(function* () {
+        let commands = yield Promise.map(_.range(2), co.wrap(function* () {
           let payload = {
             name: 'command ' + randString(8),
             command: 'sleep 1'
@@ -540,7 +540,7 @@ describe('CRUN API', function() {
         }
       });
 
-      it('should retrieve single group', function * () {
+      it('should retrieve single group', function* () {
         yield request
           .get(`/groups/${group._id}`)
           .auth(admin.username, admin.password)
@@ -555,7 +555,7 @@ describe('CRUN API', function() {
           .expect(200);
       });
 
-      it('should retrieve single group', function * () {
+      it('should retrieve single group', function* () {
         yield request
           .get(`/groups/${group._id}`)
           .query({fields: 'name,members'})
@@ -571,7 +571,7 @@ describe('CRUN API', function() {
           .expect(200);
       });
 
-      it('should retrieve single group', function * () {
+      it('should retrieve single group', function* () {
         yield request
           .get(`/groups/${group._id}`)
           .query({fields: 'name,members,executionType', expand: 1})
@@ -603,7 +603,7 @@ describe('CRUN API', function() {
     describe('PATCH /groups/:id', function() {
       let group;
 
-      before(function * () {
+      before(function* () {
         let command;
 
         {
@@ -643,7 +643,7 @@ describe('CRUN API', function() {
       });
 
       describe('Given a non-existing group', function() {
-        it('should return 404', function * () {
+        it('should return 404', function* () {
           yield request
             .patch(`/groups/${new ObjectId().toString()}`)
             .send({name: 'group ' + randString(12)})
@@ -657,7 +657,7 @@ describe('CRUN API', function() {
 
       describe('Given an existing group', function() {
         describe('Given parameters', function() {
-          it('should update group', function * () {
+          it('should update group', function* () {
             let payload = {
               name: 'group ' + randString(12),
               executionType: 'series'
@@ -682,7 +682,7 @@ describe('CRUN API', function() {
           describe('Given members', function() {
             let command;
 
-            before(function * () {
+            before(function* () {
               let payload = {
                 name: 'command ' + randString(8),
                 command: 'sleep 1'
@@ -697,7 +697,7 @@ describe('CRUN API', function() {
               command = _.merge(result.body, payload);
             });
 
-            it('should update members', function * () {
+            it('should update members', function* () {
               let payload = {
                 members: [{
                   type: 'command',
@@ -723,7 +723,7 @@ describe('CRUN API', function() {
         });
 
         describe('Given invalid parameters', function() {
-          it('should return 400', function * () {
+          it('should return 400', function* () {
             let payload = {
               members: [{
                 type: 'command',
@@ -746,7 +746,7 @@ describe('CRUN API', function() {
     describe('DELETE /groups/:id', function() {
       let group;
 
-      before(function * () {
+      before(function* () {
         let command;
 
         {
@@ -786,7 +786,7 @@ describe('CRUN API', function() {
       });
 
       describe('Given non-existing group', function() {
-        it('should return 404', function * () {
+        it('should return 404', function* () {
           yield request
             .delete(`/groups/${new ObjectId().toString()}`)
             .auth(admin.username, admin.password)
@@ -795,7 +795,7 @@ describe('CRUN API', function() {
       });
 
       describe('Given existing group', function() {
-        it('should remove group', function * () {
+        it('should remove group', function* () {
           yield request
             .delete(`/groups/${group._id}`)
             .auth(admin.username, admin.password)

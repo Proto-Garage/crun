@@ -14,18 +14,18 @@ describe('CRUN API', function() {
     password: process.env.ADMIN_PASSWORD
   };
 
-  before(function * () {
+  before(function* () {
     yield app.started;
     request = require('supertest')(app.server);
   });
 
-  after(function * () {
+  after(function* () {
     app.server.close();
   });
 
   describe('Logs', function() {
     let execution;
-    before(function * () {
+    before(function* () {
       let result = yield request
         .post('/commands')
         .send({
@@ -67,7 +67,7 @@ describe('CRUN API', function() {
     });
 
     describe('GET /logs/:id', function() {
-      it('should return NOT_FOUND', function * () {
+      it('should return NOT_FOUND', function* () {
         yield request
           .get('/logs/' + uid())
           .expect(404)
@@ -76,7 +76,7 @@ describe('CRUN API', function() {
           });
       });
 
-      it('should return execution log', function * () {
+      it('should return execution log', function* () {
         let path = execution
           .data.status.members[0].log.match(/.+(\/logs\/.+)/)[1];
 

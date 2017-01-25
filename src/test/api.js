@@ -13,17 +13,17 @@ describe('CRUN API', function() {
     password: process.env.ADMIN_PASSWORD
   };
 
-  before(function * () {
+  before(function* () {
     yield app.started;
     request = require('supertest')(app.server);
   });
 
-  after(function * () {
+  after(function* () {
     app.server.close();
   });
 
   describe('/', function() {
-    it('should return 200', function * () {
+    it('should return 200', function* () {
       yield request
         .get('/')
         .expect(200);
@@ -34,7 +34,7 @@ describe('CRUN API', function() {
     let user;
     let role;
 
-    before(function * () {
+    before(function* () {
       role = new Role({
         name: 'admin',
         permissions: [
@@ -55,7 +55,7 @@ describe('CRUN API', function() {
       yield user.save();
     });
 
-    after(function * () {
+    after(function* () {
       yield Role.remove(role);
       yield User.remove(user);
     });
@@ -63,7 +63,7 @@ describe('CRUN API', function() {
     describe('Given valid credentials', function() {
       let token;
 
-      it('should return access token and refresh token', function * () {
+      it('should return access token and refresh token', function* () {
         yield request
           .post('/authenticate')
           .send({
@@ -87,7 +87,7 @@ describe('CRUN API', function() {
           .expect(200);
       });
 
-      it('should return 200', function * () {
+      it('should return 200', function* () {
         yield request
           .get('/roles')
           .set('Authorization', 'Access ' + token.accessToken)
@@ -96,7 +96,7 @@ describe('CRUN API', function() {
 
       describe('POST /refreshToken', function() {
         describe('Given valid parameters', function() {
-          it('should create new access token', function * () {
+          it('should create new access token', function* () {
             let accessToken;
             yield request
               .post('/refreshToken')
@@ -114,7 +114,7 @@ describe('CRUN API', function() {
           });
         });
         describe('Given invalid parameters', function() {
-          it('should return 400', function * () {
+          it('should return 400', function* () {
             yield request
               .post('/refreshToken')
               .send({refreshToken: randString(32)})
@@ -128,7 +128,7 @@ describe('CRUN API', function() {
     });
 
     describe('Given invalid credentials', function() {
-      it('should return UNAUTHORIZED', function * () {
+      it('should return UNAUTHORIZED', function* () {
         yield request
           .post('/authenticate')
           .send({
@@ -140,7 +140,7 @@ describe('CRUN API', function() {
           })
           .expect(401);
       });
-      it('should return UNAUTHORIZED', function * () {
+      it('should return UNAUTHORIZED', function* () {
         yield request
           .post('/authenticate')
           .send({
@@ -152,7 +152,7 @@ describe('CRUN API', function() {
           })
           .expect(401);
       });
-      it('should return 401', function * () {
+      it('should return 401', function* () {
         yield request
           .get('/roles')
           .set('Authorization', 'Access ' + randString(32))
@@ -166,7 +166,7 @@ describe('CRUN API', function() {
 
   describe('Authentication (BASIC)', function() {
     describe('Given no authorization header', function() {
-      it('should return UNAUTHORIZED', function * () {
+      it('should return UNAUTHORIZED', function* () {
         yield request
           .get('/roles')
           .expect(function(res) {
@@ -178,7 +178,7 @@ describe('CRUN API', function() {
     });
 
     describe('Given no invalid credentials', function() {
-      it('should return UNAUTHORIZED', function * () {
+      it('should return UNAUTHORIZED', function* () {
         yield request
           .get('/roles')
           .auth(admin.username + '0', admin.password)
@@ -188,7 +188,7 @@ describe('CRUN API', function() {
           .expect(401);
       });
 
-      it('should return UNAUTHORIZED', function * () {
+      it('should return UNAUTHORIZED', function* () {
         yield request
           .get('/roles')
           .auth(admin.username, admin.password + '0')
@@ -200,7 +200,7 @@ describe('CRUN API', function() {
     });
 
     describe('Given valid credentials', function() {
-      it('should return 200', function * () {
+      it('should return 200', function* () {
         yield request
           .get('/roles')
           .auth(admin.username, admin.password)

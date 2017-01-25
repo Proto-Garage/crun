@@ -69,7 +69,7 @@ export default class Group extends EventEmitter {
     this.status = STATUS.STARTED;
     try {
       if (this.executionType === 'parallel') {
-        yield Promise.map(this.members, co.wrap(function * (member) {
+        yield Promise.map(this.members, co.wrap(function* (member) {
           yield member.run();
         }));
       } else if (this.executionType === 'series') {
@@ -94,7 +94,7 @@ export default class Group extends EventEmitter {
  * @param {ObjectId} [params.command]
  * @param {objectId} [params.group]
  */
-let _buildGroup = function * (params) {
+let _buildGroup = function* (params) {
   if (params.type === 'command') {
     let command = yield CommandModel
       .findById(params.command)
@@ -145,7 +145,7 @@ let _buildGroup = function * (params) {
  * Build group object
  * @param {ObjectId} groupId
  */
-export let buildGroup = function * (groupId) {
+export let buildGroup = function* (groupId) {
   let group = yield _buildGroup({
     group: groupId,
     type: 'group'

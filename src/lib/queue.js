@@ -42,7 +42,7 @@ class Queue extends EventEmitter {
 
 let queues = {};
 
-export let acquireToken = co.wrap(function * (queue) {
+export let acquireToken = co.wrap(function* (queue) {
   if (!queues[queue]) {
     queues[queue] = new Queue();
     queues[queue].lastUsed = Date.now();

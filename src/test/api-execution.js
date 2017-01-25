@@ -16,12 +16,12 @@ describe('CRUN API', function() {
     password: process.env.ADMIN_PASSWORD
   };
 
-  before(function * () {
+  before(function* () {
     yield app.started;
     request = require('supertest')(app.server);
   });
 
-  after(function * () {
+  after(function* () {
     app.server.close();
   });
 
@@ -30,7 +30,7 @@ describe('CRUN API', function() {
       let group;
       let command;
 
-      before(function * () {
+      before(function* () {
         let result = yield request
           .post('/commands')
           .send({name: 'sleepy-snorlax', command: 'sleep 2'})
@@ -55,7 +55,7 @@ describe('CRUN API', function() {
         group = result.body;
       });
 
-      it('should create new execution object', function * () {
+      it('should create new execution object', function* () {
         let result = yield request
           .post('/executions')
           .send({group: group._id})
@@ -75,7 +75,7 @@ describe('CRUN API', function() {
         expect(execution.status).to.has.property('elapsedTime');
       });
 
-      it('should queue executions', function * () {
+      it('should queue executions', function* () {
         let result = [];
         result[0] = yield request
           .post('/executions')
@@ -121,7 +121,7 @@ describe('CRUN API', function() {
         }
       });
 
-      it('should return INVALID_REQUEST', function * () {
+      it('should return INVALID_REQUEST', function* () {
         yield request
           .post('/executions')
           .send({group: new ObjectId().toString()})
@@ -135,7 +135,7 @@ describe('CRUN API', function() {
 
     describe('GET /executions/:id', function() {
       let command;
-      before(function * () {
+      before(function* () {
         let result = yield request
           .post('/commands')
           .send({name: 'sleepy-pikachu', command: 'sleep 2'})
@@ -145,7 +145,7 @@ describe('CRUN API', function() {
         command = result.body;
       });
 
-      it('should return execution object', function * () {
+      it('should return execution object', function* () {
         let result = yield request
           .post('/groups')
           .send({
@@ -241,7 +241,7 @@ describe('CRUN API', function() {
         let groupOne;
         let groupTwo;
 
-        before(function * () {
+        before(function* () {
           {
             let result = yield request
               .post('/groups')
@@ -280,7 +280,7 @@ describe('CRUN API', function() {
           }
         });
 
-        it('should return execution object', function * () {
+        it('should return execution object', function* () {
           let result = yield request
             .post('/executions')
             .send({group: groupOne._id})
@@ -363,7 +363,7 @@ describe('CRUN API', function() {
             .expect(200);
         });
 
-        it('should return execution object', function * () {
+        it('should return execution object', function* () {
           let result = yield request
             .post('/executions')
             .send({group: groupTwo._id})
@@ -518,7 +518,7 @@ describe('CRUN API', function() {
         });
       });
 
-      it('should return 404', function * () {
+      it('should return 404', function* () {
         yield request
           .get('/executions/' + new ObjectId().toHexString())
           .auth(admin.username, admin.password)
@@ -530,7 +530,7 @@ describe('CRUN API', function() {
     });
 
     describe('GET /executions', function() {
-      it('should return all execution instances', function * () {
+      it('should return all execution instances', function* () {
         yield request
           .get('/executions')
           .auth(admin.username, admin.password)

@@ -1,4 +1,5 @@
-/* globals Group, Command, AppError, GroupMemberCommand, GroupMemberGroup, GroupMember, Util */
+/* globals Group, Command, AppError, GroupMemberCommand, GroupMemberGroup,
+GroupMember, Util */
 import _ from 'lodash';
 import url from 'url';
 import qs from 'querystring';
@@ -38,7 +39,7 @@ const castMembers = function(members) {
   }).compact().value();
 };
 
-const expandGroup = co.wrap(function * (member, fields = ['name', 'members']) {
+const expandGroup = co.wrap(function* (member, fields = ['name', 'members']) {
   if (member.type === 'group') {
     let group = yield Group
       .findOne(member._id)
@@ -94,7 +95,7 @@ const expandGroup = co.wrap(function * (member, fields = ['name', 'members']) {
   return member;
 });
 
-const createMembers = function * (members) {
+const createMembers = function* (members) {
   members = castMembers(members);
   try {
     yield Promise.map(members, member => member.save(), {concurrency: 4});
@@ -110,7 +111,7 @@ const createMembers = function * (members) {
 };
 
 export let GroupController = {
-  create: function * () {
+  create: function* () {
     let members = [];
 
     if (this.request.body.members instanceof Array) {
@@ -140,7 +141,7 @@ export let GroupController = {
     };
     this.status = 201;
   },
-  find: function * () {
+  find: function* () {
     let limit = Number.parseInt(this.query.limit, 10) || 10;
     let skip = Number.parseInt(this.query.skip, 10) || 0;
 
@@ -224,7 +225,7 @@ export let GroupController = {
       })
     };
   },
-  findOne: function * () {
+  findOne: function* () {
     let fields = DEFAULT_FIELDS_LIST;
     if (this.query.fields) {
       fields = _.intersection(fields, this.query.fields.split(','));
@@ -267,7 +268,7 @@ export let GroupController = {
       data: group
     };
   },
-  update: function * () {
+  update: function* () {
     let group = yield Group
       .findOne({_id: this.params.id, creator: this.user})
       .exec();
@@ -293,7 +294,7 @@ export let GroupController = {
     yield group.update(params).exec();
     this.status = 200;
   },
-  remove: function * () {
+  remove: function* () {
     let group = yield Group
       .findOne({_id: this.params.id, creator: this.user})
       .exec();

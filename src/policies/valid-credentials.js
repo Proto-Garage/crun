@@ -3,7 +3,7 @@ import _ from 'lodash';
 import jwt from 'jwt-simple';
 import {JWT_SECRET} from '../lib/jwt';
 
-export let validCredentials = function * (next) {
+export let validCredentials = function* (next) {
   if (!this.request.headers.authorization) {
     throw new AppError('UNAUTHORIZED', 'Unauthorized.');
   }

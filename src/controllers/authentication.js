@@ -4,7 +4,7 @@ import jwt from 'jwt-simple';
 import {JWT_SECRET, REFRESH_TOKEN_TTL, ACCESS_TOKEN_TTL} from '../lib/jwt';
 
 export let AuthenticationController = {
-  refreshToken: function * () {
+  refreshToken: function* () {
     let refreshToken = this.request.body.refreshToken;
 
     if (!refreshToken) {
@@ -55,7 +55,7 @@ export let AuthenticationController = {
       accessToken
     };
   },
-  authenticate: function * () {
+  authenticate: function* () {
     let user = yield User.verifyCredentials(this.request.body);
 
     let token = new Token({

@@ -4,7 +4,7 @@ import url from 'url';
 import qs from 'querystring';
 
 export let CommandController = {
-  update: function * () {
+  update: function* () {
     let params = _.pick(this.request.body, [
       'name',
       'command',
@@ -25,7 +25,7 @@ export let CommandController = {
 
     this.status = 200;
   },
-  remove: function * () {
+  remove: function* () {
     let command = yield Command
       .findOneAndRemove({creator: this.user, _id: this.params.id})
       .exec();
@@ -37,7 +37,7 @@ export let CommandController = {
 
     this.status = 200;
   },
-  create: function * () {
+  create: function* () {
     let params = _.pick(this.request.body, [
       'name',
       'command',
@@ -57,7 +57,7 @@ export let CommandController = {
     };
     this.status = 201;
   },
-  find: function * () {
+  find: function* () {
     let limit = Number.parseInt(this.query.limit, 10) || 10;
     let skip = Number.parseInt(this.query.skip, 10) || 0;
 
@@ -100,7 +100,7 @@ export let CommandController = {
       })
     };
   },
-  findOne: function * () {
+  findOne: function* () {
     let fields = [
       'name',
       'command',

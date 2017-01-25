@@ -23,7 +23,7 @@ let app = koa();
 
 global.app = {};
 
-global.app.started = co(function * () {
+global.app.started = co(function* () {
   app.use(json({pretty: false, param: 'pretty'}));
   app.use(bodyParser());
 
@@ -64,7 +64,7 @@ global.app.started = co(function * () {
     let match = key.match(/^(GET|POST|DELETE|PUT|PATCH) (.+)$/);
     let method = match[1].toLowerCase();
     let path = match[2];
-    stack.push(function * (next) {
+    stack.push(function* (next) {
       yield handler.call(this);
       yield next;
     });

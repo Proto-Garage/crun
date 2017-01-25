@@ -31,13 +31,13 @@ let schema = new Schema({
 
 schema.pre('save', function(next) {
   let self = this;
-  co(function * () {
+  co(function* () {
     self.rawPassword = self.password;
     self.password = yield Util.bcryptHash(self.password);
   }).then(next).catch(next);
 });
 
-schema.statics.verifyCredentials = function * (credentials) {
+schema.statics.verifyCredentials = function* (credentials) {
   let user = yield this
     .model('User')
     .findOne({username: credentials.username})

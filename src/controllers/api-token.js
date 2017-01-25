@@ -11,7 +11,7 @@ const DEFAULT_FIELDS_LIST = [
 ];
 
 export let APITokenController = {
-  create: function * () {
+  create: function* () {
     let token = new APIToken({
       creator: this.user,
       owner: this.params.id || this.user
@@ -25,7 +25,7 @@ export let APITokenController = {
     };
     this.status = 201;
   },
-  findOne: function * () {
+  findOne: function* () {
     let fields = DEFAULT_FIELDS_LIST;
     if (this.query.fields) {
       fields = _.intersection(fields, this.query.fields.split(','));
@@ -62,7 +62,7 @@ export let APITokenController = {
       data: token
     };
   },
-  find: function * () {
+  find: function* () {
     let limit = Number.parseInt(this.query.limit, 10) || 10;
     let skip = Number.parseInt(this.query.skip, 10) || 0;
 
@@ -118,7 +118,7 @@ export let APITokenController = {
       })
     };
   },
-  remove: function * () {
+  remove: function* () {
     let token = yield APIToken
       .findOne({_id: this.params.id})
       .exec();

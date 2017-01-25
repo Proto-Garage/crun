@@ -13,7 +13,7 @@ let statusCodes = {
 };
 
 export default [
-  function * httpLogger(next) {
+  function* httpLogger(next) {
     let request = {
       method: this.request.method,
       url: this.request.originalUrl,
@@ -35,11 +35,10 @@ export default [
     }
     logger('response', response);
   },
-  function * handleErrors(next) {
+  function* handleErrors(next) {
     try {
       yield next;
     } catch (err) {
-      console.error(err);
       if (err instanceof AppError) {
         this.body = err.toObject();
         this.status = statusCodes[err.code] || 400;
@@ -62,7 +61,7 @@ export default [
       }
     }
   },
-  function * setBaseUrl(next) {
+  function* setBaseUrl(next) {
     this.baseUrl = process.env.BASE_URL;
     yield next;
   }

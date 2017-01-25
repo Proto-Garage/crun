@@ -4,7 +4,7 @@ import url from 'url';
 import qs from 'querystring';
 
 export let UserController = {
-  update: function * () {
+  update: function* () {
     let params = _.pick(this.request.body, ['roles']);
 
     let user = yield User.findByIdAndUpdate(this.params.id, params).exec();
@@ -14,7 +14,7 @@ export let UserController = {
     }
     this.status = 200;
   },
-  remove: function * () {
+  remove: function* () {
     let user = yield User
       .findOneAndRemove({creator: this.user, _id: this.params.id})
       .exec();
@@ -26,7 +26,7 @@ export let UserController = {
 
     this.status = 200;
   },
-  create: function * () {
+  create: function* () {
     let params = _.pick(this.request.body, [
       'username',
       'password',
@@ -45,7 +45,7 @@ export let UserController = {
 
     this.status = 201;
   },
-  findOne: function * () {
+  findOne: function* () {
     let user = yield User
       .findOne({_id: this.params.id, creator: this.user})
       .select({username: 1, createdAt: 1, roles: 1})
@@ -64,7 +64,7 @@ export let UserController = {
       data: user
     };
   },
-  find: function * () {
+  find: function* () {
     let limit = Number.parseInt(this.query.limit, 10) || 10;
     let skip = Number.parseInt(this.query.skip, 10) || 0;
 

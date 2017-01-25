@@ -11,7 +11,7 @@ const DEFAULT_FIELDS_LIST = [
 ];
 
 export let RoleController = {
-  create: function * () {
+  create: function* () {
     let params = _.pick(this.request.body, [
       'name',
       'permissions'
@@ -38,7 +38,7 @@ export let RoleController = {
     };
     this.status = 201;
   },
-  update: function * () {
+  update: function* () {
     let params = _.pick(this.request.body, [
       'name',
       'permissions'
@@ -55,7 +55,7 @@ export let RoleController = {
 
     this.status = 200;
   },
-  findOne: function * () {
+  findOne: function* () {
     let fields = DEFAULT_FIELDS_LIST;
     if (this.query.fields) {
       fields = _.intersection(fields, this.query.fields.split(','));
@@ -79,7 +79,7 @@ export let RoleController = {
       data: role
     };
   },
-  find: function * () {
+  find: function* () {
     let limit = Number.parseInt(this.query.limit, 10) || 10;
     let skip = Number.parseInt(this.query.skip, 10) || 0;
 
@@ -129,7 +129,7 @@ export let RoleController = {
       })
     };
   },
-  remove: function * () {
+  remove: function* () {
     let role = yield Role
       .findOneAndRemove({creator: this.user, _id: this.params.id})
       .exec();
