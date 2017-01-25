@@ -3,6 +3,16 @@ import _ from 'lodash';
 import url from 'url';
 import qs from 'querystring';
 
+const DEFAULT_FIELDS_LIST = [
+  'name',
+  'command',
+  'env',
+  'cwd',
+  'createdAt',
+  'timeout',
+  'enabled'
+];
+
 export let CommandController = {
   update: function* () {
     let params = _.pick(this.request.body, [
@@ -61,39 +71,46 @@ export let CommandController = {
     let limit = Number.parseInt(this.query.limit, 10) || 10;
     let skip = Number.parseInt(this.query.skip, 10) || 0;
 
-    let fields = [
-      'name',
-      'command',
-      'env',
-      'cwd',
-      'createdAt',
-      'timeout',
-      'enabled'
-    ];
-
+    let fields = DEFAULT_FIELDS_LIST;
     if (this.query.fields) {
       fields = _.intersection(fields, this.query.fields.split(','));
     }
 
+    let query = {creator: this.user};
+    let count = yield Group.where(query).count();
+    if (skip >= count) {
+      this.body = {
+        links: {},
+        data: []
+      };
+    }
+
     let commands = yield Command
-      .find({creator: this.user})
-      .select(_.reduce(fields, (accum, field) => {
-        accum[field] = 1;
-        return accum;
-      }, {}))
+      .find(query)
+      .select(Util.keyArrayToObject(fields))
       .sort({createdAt: -1})
       .skip(skip)
       .limit(limit)
       .lean(true)
       .exec();
 
+    let links = {
+      self: url.resolve(this.baseUrl, '/commands') +
+        '?' + qs.stringify({limit, skip}),
+      last: url.resolve(this.baseUrl, '/commands') +
+        '?' + qs.stringify({
+          limit: count % limit,
+          skip: Math.floor(count / limit) * limit
+        })
+    };
+
+    if ((limit + skip) < count) {
+      links.next = url.resolve(this.baseUrl, '/commands') +
+        '?' + qs.stringify({limit, skip: limit + skip});
+    }
+
     this.body = {
-      links: {
-        self: url.resolve(this.baseUrl, '/commands') +
-          '?' + qs.stringify({limit, skip}),
-        next: url.resolve(this.baseUrl, '/commands') +
-          '?' + qs.stringify({limit, skip: limit})
-      },
+      links,
       data: _.map(commands, item => {
         item.uri = url.resolve(this.baseUrl, '/commands/' + item._id);
         return item;
@@ -101,26 +118,17 @@ export let CommandController = {
     };
   },
   findOne: function* () {
-    let fields = [
-      'name',
-      'command',
-      'env',
-      'cwd',
-      'createdAt',
-      'timeout',
-      'enabled'
-    ];
-
+    let fields = DEFAULT_FIELDS_LIST;
     if (this.query.fields) {
       fields = _.intersection(fields, this.query.fields.split(','));
     }
 
+    let query = {_id: this.params.id};
+    query.creator = this.user;
+
     let command = yield Command
-      .findOne({_id: this.params.id, creator: this.user})
-      .select(_.reduce(fields, (accum, field) => {
-        accum[field] = 1;
-        return accum;
-      }, {}))
+      .findOne(query)
+      .select(_.merge(Util.keyArrayToObject(fields), {_id: 0}))
       .lean(true)
       .exec();
 

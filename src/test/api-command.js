@@ -107,7 +107,6 @@ describe('CRUN API', function() {
             expect(res.body).to.has.property('links');
             expect(res.body.links).to.has.property('self');
             expect(res.body).to.has.property('data');
-            expect(res.body.data).to.has.property('_id');
             expect(res.body.data).to.has.property('name');
             expect(res.body.data).to.has.property('timeout');
             expect(res.body.data).to.has.property('command');
