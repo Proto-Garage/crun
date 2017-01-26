@@ -6,32 +6,40 @@ import co from 'co';
 let Schema = mongoose.Schema;
 
 let schema = new Schema({
+  admin: {
+    type: Boolean,
+    default: false
+  },
   username: {
     type: String,
-    required: true
+    required: true,
+    match: /^[A-Za-z0-9_]{1,32}$/
   },
   password: {
     type: String,
-    required: true
+    required: true,
+    match: /^([^ ]+){8,32}$/
   },
   creator: {
     type: Schema.Types.ObjectId,
     ref: 'User'
   },
-  createdAt: Date,
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
   roles: [{type: Schema.Types.ObjectId, ref: 'Role'}]
 });
 
 schema.pre('save', function(next) {
   let self = this;
-  this.createdAt = new Date();
-  co(function * () {
+  co(function* () {
     self.rawPassword = self.password;
     self.password = yield Util.bcryptHash(self.password);
   }).then(next).catch(next);
 });
 
-schema.statics.verifyCredentials = function * (credentials) {
+schema.statics.verifyCredentials = function* (credentials) {
   let user = yield this
     .model('User')
     .findOne({username: credentials.username})
@@ -58,6 +66,7 @@ schema.statics.verifyCredentials = function * (credentials) {
   return user;
 };
 
+schema.index({admin: 1});
 schema.index({username: 1}, {unique: true});
 schema.index({creator: 1});
 schema.index({createdAt: -1});

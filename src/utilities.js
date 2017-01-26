@@ -3,6 +3,18 @@ import _ from 'lodash';
 import bcrypt from 'bcryptjs';
 
 /**
+ * Create select object for mongoose
+ * given an array of keys
+ * @param {string[]} keys
+ */
+export function keyArrayToObject(keys) {
+  return _.reduce(keys, (accum, field) => {
+    accum[field] = 1;
+    return accum;
+  }, {});
+}
+
+/**
  * Delay for the specified milliseconds
  * @param {number} time
  */

@@ -10,6 +10,9 @@ import bootloaders from './bootloaders';
 import json from 'koa-json';
 import compose from 'koa-compose';
 import bodyParser from 'koa-bodyparser';
+import Promise from 'bluebird';
+
+const mkdir = Promise.promisify(require('fs').mkdir);
 
 let logger = debug('boot');
 let router = require('koa-router')();
@@ -23,7 +26,7 @@ let app = koa();
 
 global.app = {};
 
-global.app.started = co(function * () {
+global.app.started = co(function* () {
   app.use(json({pretty: false, param: 'pretty'}));
   app.use(bodyParser());
 
@@ -64,7 +67,7 @@ global.app.started = co(function * () {
     let match = key.match(/^(GET|POST|DELETE|PUT|PATCH) (.+)$/);
     let method = match[1].toLowerCase();
     let path = match[2];
-    stack.push(function * (next) {
+    stack.push(function* (next) {
       yield handler.call(this);
       yield next;
     });
@@ -73,27 +76,39 @@ global.app.started = co(function * () {
 
   logger('Initializing admin account.');
   let role = yield Role.findOneAndUpdate({name: 'superuser'}, {
-    operations: [
-      {name: 'WRITE_USER', user: 'all'},
-      {name: 'READ_USER', user: 'all'},
-      {name: 'WRITE_ROLE', role: 'all'},
-      {name: 'READ_ROLE', role: 'all'},
-      {name: 'WRITE_COMMAND', command: 'all'},
-      {name: 'READ_COMMAND', command: 'all'},
-      {name: 'WRITE_GROUP', group: 'all'},
-      {name: 'READ_GROUP', group: 'all'},
-      {name: 'EXECUTE_GROUP', group: 'all'}
+    permissions: [
+      {operation: 'CREATE_USER'},
+      {operation: 'CREATE_ROLE'},
+      {operation: 'CREATE_COMMAND'},
+      {operation: 'CREATE_GROUP'},
+      {operation: 'EXECUTE_GROUP'}
     ]
   }, {upsert: true, new: true}).exec();
 
-  try {
+  let admin = yield User.findOne({admin: true}).exec();
+
+  if (admin) {
+    yield admin.update({
+      username: process.env.ADMIN_USERNAME,
+      password: process.env.ADMIN_PASSWORD
+    }).exec();
+  } else {
     let admin = new User({
       username: process.env.ADMIN_USERNAME,
       password: process.env.ADMIN_PASSWORD,
       roles: [role]
     });
     yield admin.save();
-  } catch (err) {}
+  }
+
+  try {
+    yield mkdir(process.env.COMMAND_LOGS_DIR, 0o755);
+  } catch(err) {
+    if (err.code !== 'EEXIST') {
+      throw err;
+    }
+  }
+
 
   app
     .use(router.routes())
@@ -108,4 +123,3 @@ global.app.started = co(function * () {
 global.app.started.catch(function(err) {
   console.error(err, err.stack);
 });
-

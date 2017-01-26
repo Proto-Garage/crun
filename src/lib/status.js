@@ -1,0 +1,7 @@
+export default {
+  PENDING: 'PENDING',
+  STARTED: 'STARTED',
+  FAILED: 'FAILED',
+  SUCCEEDED: 'SUCCEEDED',
+  QUEUED: 'QUEUED'
+};

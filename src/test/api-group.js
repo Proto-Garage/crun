@@ -1,413 +1,812 @@
-/* globals app, Group */
-/* eslint max-nested-callbacks: ["error", 6]*/
+/* globals app, Group, Command */
 import {expect} from 'chai';
-import _ from 'lodash';
 import mongoose from 'mongoose';
-import {isValidGroup} from '../lib/group';
+import {generate as randString} from 'rand-token';
+import Promise from 'bluebird';
+import _ from 'lodash';
+import co from 'co';
 
 let ObjectId = mongoose.Types.ObjectId;
 
 let request;
 
 describe('CRUN API', function() {
-  this.timeout(20000);
+  this.timeout(30000);
 
   let admin = {
     username: process.env.ADMIN_USERNAME,
     password: process.env.ADMIN_PASSWORD
   };
 
-  before(function * () {
+  before(function* () {
     yield app.started;
     request = require('supertest')(app.server);
   });
 
-  after(function * () {
+  after(function* () {
     app.server.close();
   });
 
   describe('Groups', function() {
-    describe('Validation', function() {
-      it('should throw error when type is invalid', function() {
-        let group = {
-          type: 'group'
-        };
-
-        try {
-          isValidGroup(group);
-          expect(true).to.equal(false);
-        } catch (err) {
-          expect(err.message).to.equal('`group` is not a valid type');
-        }
-      });
-
-      it('should not throw error for a valid group', function() {
-        let group = {
-          type: 'command',
-          _id: new ObjectId().toHexString()
-        };
-
-        isValidGroup(group);
-      });
-
-      it('should throw error when _id is undefined', function() {
-        let group = {
-          type: 'command'
-        };
-
-        try {
-          isValidGroup(group);
-          expect(true).to.equal(false);
-        } catch (err) {
-          expect(err.message).to.equal('`_id` is undefined');
-        }
-      });
-
-      it('should not throw error for a valid group', function() {
-        let group = {
-          type: 'serial',
-          groups: [{
-            type: 'command',
-            _id: new ObjectId().toHexString()
-          }, {
-            type: 'command',
-            _id: new ObjectId().toHexString()
-          }]
-        };
-
-        isValidGroup(group);
-      });
-
-      it('should not throw error for a valid group', function() {
-        let group = {
-          type: 'serial',
-          groups: [{
-            type: 'parallel',
-            groups: [{
-              type: 'command',
-              _id: new ObjectId().toHexString()
-            }]
-          }, {
-            type: 'command',
-            _id: new ObjectId().toHexString()
-          }]
-        };
-
-        isValidGroup(group);
-      });
-
-      it('should throw error when _id is undefined', function() {
-        let group = {
-          type: 'serial',
-          groups: [{
-            type: 'parallel',
-            groups: [{
-              type: 'command'
-            }]
-          }, {
-            type: 'command',
-            _id: new ObjectId().toHexString()
-          }]
-        };
-
-        try {
-          isValidGroup(group);
-          expect(true).to.equal(false);
-        } catch (err) {
-          expect(err.message).to.equal('`_id` is undefined');
-        }
-      });
-    });
-
     describe('POST /groups', function() {
-      let command;
-      before(function * () {
-        let result = yield request
-          .post('/commands')
-          .send({name: 'sleepy-head', command: 'sleep 2'})
-          .auth(admin.username, admin.password)
-          .expect(201);
-
-        command = result.body;
+      after(function* () {
+        yield Group.remove().exec();
+        yield Command.remove().exec();
       });
-      it('should create new group', function * () {
-        let group = {
-          name: 'group',
-          group: {
-            type: 'command',
-            _id: command._id
-          },
-          queue: 'test'
-        };
+      describe('Given valid parameters', function() {
+        let command;
+        before(function* () {
+          let result = yield request
+            .post('/commands')
+            .send({name: 'sleepy-head', command: 'sleep 2'})
+            .auth(admin.username, admin.password)
+            .expect(201);
 
-        let res = yield request
-          .post('/groups')
-          .send(group)
-          .auth(admin.username, admin.password)
-          .expect(201);
+          command = result.body;
+        });
+        it('should create new group', function* () {
+          let group = {
+            name: 'group ' + randString(12),
+            members: [{
+              type: 'command',
+              _id: command._id
+            }],
+            queue: 'test'
+          };
 
-        expect(res.body).to.have.property('uri');
-        expect(res.body).to.have.property('_id');
+          let res = yield request
+            .post('/groups')
+            .send(group)
+            .auth(admin.username, admin.password)
+            .expect(201);
 
-        group = yield Group.findById(res.body._id).exec();
-        expect(group).to.has.property('name', 'group');
-        expect(group).to.has.property('group');
-        expect(group.group).to.be.deep.equal(group.group);
+          expect(res.body).to.have.property('uri');
+          expect(res.body).to.have.property('_id');
+
+          group = yield Group.findById(res.body._id).populate('members').exec();
+          expect(group).to.has.property('name', group.name);
+          expect(group).to.has.property('members');
+          expect(group.members).to.has.length(1);
+        });
       });
-
-      it('should create new group', function * () {
-        let group = {
-          name: 'complex group',
-          queue: 'test',
-          group: {
-            type: 'serial',
-            groups: [{
-              type: 'parallel',
-              groups: [{
+      describe('Given invalid parameters', function() {
+        describe('Given an invalid member command', function() {
+          it('should return 400', function* () {
+            let group = {
+              name: 'group ' + randString(12),
+              members: [{
                 type: 'command',
-                _id: command._id
-              }]
-            }, {
-              type: 'command',
-              _id: command._id
-            }]
-          }
-        };
+                _id: randString(24)
+              }],
+              queue: 'test'
+            };
 
-        let res = yield request
-          .post('/groups')
-          .send(group)
-          .auth(admin.username, admin.password)
-          .expect(201);
+            let res = yield request
+              .post('/groups')
+              .send(group)
+              .auth(admin.username, admin.password)
+              .expect(400);
 
-        expect(res.body).to.have.property('uri');
-        expect(res.body).to.have.property('_id');
-
-        group = yield Group.findById(res.body._id).exec();
-        expect(group).to.has.property('name', 'complex group');
-        expect(group).to.has.property('group');
-        expect(group.group).to.be.deep.equal(group.group);
-      });
-
-      it('should return INVALID_REQUEST', function * () {
-        let group = {
-          name: 'complex group',
-          queue: 'test',
-          group: {
-            type: 'serial',
-            groups: [{
-              type: 'parallel'
-            }, {
-              type: 'command',
-              _id: command._id
-            }]
-          }
-        };
-
-        yield request
-          .post('/groups')
-          .send(group)
-          .auth(admin.username, admin.password)
-          .expect(function(res) {
             expect(res.body).to.has.property('code', 'INVALID_REQUEST');
-          })
-          .expect(400);
-      });
+          });
+        });
+        describe('Given missing required parameters', function() {
+          it('should return 400', function* () {
+            let group = {
+              queue: 'test'
+            };
 
-      it('should return INVALID_REQUEST', function * () {
-        let group = {
-          name: 'complex group',
-          queue: 'test',
-          group: {
-            type: 'serial',
-            groups: [{
-              type: 'command',
-              _id: new ObjectId().toHexString()
-            }]
-          }
-        };
+            let res = yield request
+              .post('/groups')
+              .send(group)
+              .auth(admin.username, admin.password)
+              .expect(400);
 
-        yield request
-          .post('/groups')
-          .send(group)
-          .auth(admin.username, admin.password)
-          .expect(function(res) {
             expect(res.body).to.has.property('code', 'INVALID_REQUEST');
-          })
-          .expect(400);
+          });
+        });
+      });
+      describe('Given a non-existing member', function() {
+        it('should return 400', function* () {
+          let group = {
+            name: 'group ' + randString(12),
+            members: [{
+              type: 'command',
+              _id: new ObjectId().toString()
+            }],
+            queue: 'test'
+          };
+
+          let res = yield request
+            .post('/groups')
+            .send(group)
+            .auth(admin.username, admin.password)
+            .expect(400);
+
+          expect(res.body).to.has.property('code', 'INVALID_REQUEST');
+        });
+      });
+      describe('Given a valid member group', function() {
+        it('should create new group', function* () {
+          let commands = yield Promise.map(_.range(4), co.wrap(function* () {
+            let payload = {
+              name: 'command ' + randString(8),
+              command: 'sleep 1'
+            };
+
+            let result = yield request
+              .post('/commands')
+              .send(payload)
+              .auth(admin.username, admin.password)
+              .expect(201);
+
+            return _.merge(result.body, payload);
+          }));
+
+          let groups = [];
+
+          {
+            let payload = {
+              name: 'group ' + randString(12),
+              members: _.map(_.take(commands, 2), command => {
+                return {
+                  type: 'command',
+                  _id: command._id
+                };
+              }),
+              executionType: 'parallel',
+              queue: 'test'
+            };
+
+            let res = yield request
+              .post('/groups')
+              .send(payload)
+              .auth(admin.username, admin.password)
+              .expect(201);
+
+            groups.push(_.merge(res.body, payload));
+          }
+
+          {
+            let payload = {
+              name: 'group ' + randString(12),
+              members: [{
+                type: 'group',
+                _id: _.first(groups)._id
+              }, {
+                type: 'command',
+                _id: _.nth(commands, 2)._id
+              }],
+              queue: 'test'
+            };
+
+            let res = yield request
+              .post('/groups')
+              .send(payload)
+              .auth(admin.username, admin.password)
+              .expect(201);
+
+            groups.push(_.merge(res.body, payload));
+          }
+
+          {
+            let payload = {
+              name: 'group ' + randString(12),
+              members: [{
+                type: 'group',
+                _id: _.nth(groups, 1)._id
+              }, {
+                type: 'command',
+                _id: _.nth(commands, 3)._id
+              }],
+              queue: 'test'
+            };
+
+            yield request
+              .post('/groups')
+              .send(payload)
+              .auth(admin.username, admin.password)
+              .expect(201);
+          }
+        });
       });
     });
 
     describe('GET /groups', function() {
-      before(function * () {
-        let result = yield request
-          .post('/commands')
-          .send({name: 'sleepy-head-2', command: 'sleep 2'})
-          .auth(admin.username, admin.password)
-          .expect(201);
+      before(function* () {
+        let commands = yield Promise.map(_.range(15), co.wrap(function* () {
+          let command;
 
-        yield _.times(20, index => {
-          return request
+          {
+            let payload = {
+              name: 'command ' + randString(8),
+              command: 'sleep 1'
+            };
+
+            let result = yield request
+              .post('/commands')
+              .send(payload)
+              .auth(admin.username, admin.password)
+              .expect(201);
+
+            command = _.merge(result.body, payload);
+          }
+
+          return command;
+        }), {concurrency: 5});
+
+        yield Promise.map(_.take(commands, 13), co.wrap(function* (command) {
+          let payload = {
+            name: 'group ' + randString(12),
+            members: [{
+              type: 'command',
+              _id: command._id
+            }],
+            queue: 'test'
+          };
+
+          yield request
             .post('/groups')
-            .send({
-              name: 'group ' + index,
-              queue: 'test',
-              group: {
-                type: 'command',
-                _id: result.body._id
-              }
-            })
+            .send(payload)
             .auth(admin.username, admin.password)
             .expect(201);
-        });
+        }), {concurrency: 5});
+
+        let group;
+
+        {
+          let payload = {
+            name: 'group ' + randString(12),
+            members: [{
+              type: 'command',
+              _id: _.nth(commands, 13)._id
+            }],
+            executionType: 'parallel',
+            queue: 'test'
+          };
+
+          let res = yield request
+            .post('/groups')
+            .send(payload)
+            .auth(admin.username, admin.password)
+            .expect(201);
+
+          group = _.merge(res.body, payload);
+        }
+
+        {
+          let payload = {
+            name: 'group ' + randString(12),
+            members: [{
+              type: 'command',
+              _id: _.nth(commands, 14)._id
+            }, {
+              type: 'group',
+              _id: group._id
+            }],
+            queue: 'test'
+          };
+
+          yield request
+            .post('/groups')
+            .send(payload)
+            .auth(admin.username, admin.password)
+            .expect(201);
+        }
+      });
+      after(function* () {
+        yield Group.remove().exec();
+        yield Command.remove().exec();
       });
 
-      it('should return all groups', function * () {
-        let result = yield request
+      it('should retrieve first 10 groups', function* () {
+        yield request
           .get('/groups')
           .auth(admin.username, admin.password)
+          .expect(function(result) {
+            expect(result.body).to.has.property('links');
+            expect(result.body.links).to.has.property('self');
+            expect(result.body.links).to.has.property('next');
+            expect(result.body.links).to.has.property('last');
+            expect(result.body).to.has.property('data')
+              .that.is.a('array');
+            _.each(result.body.data, item => {
+              expect(item).to.has.property('name');
+              expect(item).to.has.property('queue');
+              expect(item).to.has.property('enabled');
+              expect(item).to.has.property('executionType');
+              expect(item).to.has.property('members');
+              expect(item).to.has.property('createdAt');
+              expect(item).to.has.property('_id');
+              expect(item).to.has.property('_uri');
+            });
+            expect(result.body.data.length).to.equal(10);
+          })
           .expect(200);
+      });
 
-        expect(result.body).to.has.property('links');
-        expect(result.body.links).to.has.property('self');
-        expect(result.body.links).to.has.property('next');
-        expect(result.body).to.has.property('data')
-          .that.is.a('array');
-        _.each(result.body.data, item => {
-          expect(item).to.has.property('name');
-          expect(item).to.has.property('queue');
-          expect(item).to.has.property('createdAt');
-          expect(item).to.has.property('group');
+      it('should retrieve first 10 groups with expanded members',
+      function* () {
+        yield request
+          .get('/groups')
+          .query({expand: 1})
+          .auth(admin.username, admin.password)
+          .expect(function(result) {
+            expect(result.body).to.has.property('links');
+            expect(result.body.links).to.has.property('self');
+            expect(result.body.links).to.has.property('next');
+            expect(result.body.links).to.has.property('last');
+            expect(result.body).to.has.property('data')
+              .that.is.a('array');
+            let checkMember = function(member) {
+              expect(member).to.has.property('_id');
+              expect(member).to.has.property('_uri');
+              expect(member).to.has.property('type');
+              if (member.type === 'group') {
+                expect(member).to.has.property('name');
+                expect(member).to.has.property('queue');
+                expect(member).to.has.property('enabled');
+                expect(member).to.has.property('executionType');
+                expect(member).to.has.property('members');
+                expect(member).to.has.property('createdAt');
+              }
+            };
+            let checkGroup = function(group) {
+              expect(group).to.has.property('name');
+              expect(group).to.has.property('queue');
+              expect(group).to.has.property('enabled');
+              expect(group).to.has.property('executionType');
+              expect(group).to.has.property('members');
+              expect(group).to.has.property('createdAt');
+              expect(group).to.has.property('_id');
+              expect(group).to.has.property('_uri');
+              _.each(result.body.data.members, checkMember);
+            };
+            _.each(result.body.data, checkGroup);
+            expect(result.body.data.length).to.equal(10);
+          })
+          .expect(200);
+      });
+
+      it('should retrieve remaining groups', function* () {
+        yield request
+          .get('/groups?skip=10')
+          .auth(admin.username, admin.password)
+          .expect(function(result) {
+            expect(result.body).to.has.property('links');
+            expect(result.body.links).to.has.property('self');
+            expect(result.body.links).to.not.has.property('next');
+            expect(result.body.links).to.has.property('last');
+            expect(result.body).to.has.property('data')
+              .that.is.a('array');
+            _.each(result.body.data, item => {
+              expect(item).to.has.property('name');
+              expect(item).to.has.property('queue');
+              expect(item).to.has.property('enabled');
+              expect(item).to.has.property('executionType');
+              expect(item).to.has.property('members');
+              expect(item).to.has.property('createdAt');
+              expect(item).to.has.property('_id');
+              expect(item).to.has.property('_uri');
+            });
+            expect(result.body.data.length).to.equal(5);
+          })
+          .expect(200);
+      });
+
+      describe('Given a new user', function() {
+        let user = {
+          username: 'users_' + randString(8),
+          password: randString(16)
+        };
+
+        before(function* () {
+          let result = yield request
+            .post('/users')
+            .send(user)
+            .auth(admin.username, admin.password)
+            .expect(201)
+            .expect(function(res) {
+              expect(res.body).to.has.property('uri');
+              expect(res.body).to.has.property('_id');
+            });
+
+          user = _.merge(user, result.body);
+        });
+
+        it('should return no group', function* () {
+          yield request
+            .get('/groups')
+            .auth(user.username, user.password)
+            .expect(function(result) {
+              expect(result.body.data.length).to.equal(0);
+            })
+            .expect(200);
+        });
+
+        describe('Given EXECUTE_GROUP permission', function() {
+          let groups;
+
+          before(function* () {
+            let result = yield request
+              .get('/groups')
+              .query({limit: 2})
+              .auth(admin.username, admin.password)
+              .expect(200);
+
+            groups = result.body.data;
+
+            result = yield request
+              .post('/roles')
+              .send({
+                name: 'role ' + randString(8),
+                permissions: _.map(groups, group => {
+                  return {
+                    operation: 'EXECUTE_GROUP',
+                    scope: {
+                      group: group._id
+                    }
+                  };
+                })
+              })
+              .auth(admin.username, admin.password)
+              .expect(201);
+
+            let role = result.body;
+
+            yield request
+              .patch('/users/' + user._id)
+              .send({
+                roles: [role._id]
+              })
+              .auth(admin.username, admin.password)
+              .expect(200);
+          });
+
+          it('should retrieve authorized groups', function* () {
+            yield request
+              .get('/groups')
+              .auth(user.username, user.password)
+              .expect(function(result) {
+                expect(_.intersection(
+                  _.map(groups, '_id'),
+                  _.map(result.body.data, '_id')
+                )).to.has.length(2);
+              })
+              .expect(200);
+          });
         });
       });
     });
 
     describe('GET /groups/:id', function() {
       let group;
-      before(function * () {
-        let result = yield request
-          .post('/commands')
-          .send({name: 'sleepy-head-3', command: 'sleep 2'})
-          .auth(admin.username, admin.password)
-          .expect(201);
 
-        result = yield request
-          .post('/groups')
-          .send({
-            name: 'test group 1',
-            queue: 'test',
-            group: {
+      before(function* () {
+        let commands = yield Promise.map(_.range(2), co.wrap(function* () {
+          let payload = {
+            name: 'command ' + randString(8),
+            command: 'sleep 1'
+          };
+
+          let result = yield request
+            .post('/commands')
+            .send(payload)
+            .auth(admin.username, admin.password)
+            .expect(201);
+
+          return _.merge(result.body, payload);
+        }), {concurrency: 5});
+
+        {
+          let payload = {
+            name: 'group ' + randString(12),
+            members: [{
               type: 'command',
-              _id: result.body._id
-            }
-          })
-          .auth(admin.username, admin.password)
-          .expect(201);
+              _id: _.first(commands)._id
+            }],
+            queue: 'test'
+          };
 
-        group = result.body;
-      });
+          let result = yield request
+            .post('/groups')
+            .send(payload)
+            .auth(admin.username, admin.password)
+            .expect(201);
 
-      it('should return single group', function * () {
-        let result = yield request
-          .get('/groups/' + group._id)
-          .auth(admin.username, admin.password)
-          .expect(200);
+          group = _.merge(result.body, payload);
+        }
 
-        expect(result.body).to.has.property('links');
-        expect(result.body.links).to.has.property('self');
-        expect(result.body).to.has.property('data');
-        expect(result.body.data).to.has.property('name');
-        expect(result.body.data).to.has.property('queue');
-        expect(result.body.data).to.has.property('createdAt');
-        expect(result.body.data).to.has.property('group');
-      });
-    });
-
-    describe('DELETE /groups/:id', function() {
-      let group;
-
-      before(function * () {
-        let result = yield request
-          .post('/commands')
-          .send({name: 'sleepy-head-4', command: 'sleep 2'})
-          .auth(admin.username, admin.password)
-          .expect(201);
-
-        result = yield request
-          .post('/groups')
-          .send({
-            name: 'test group 2',
-            queue: 'test',
-            group: {
+        {
+          let payload = {
+            name: 'group ' + randString(12),
+            members: [{
               type: 'command',
-              _id: result.body._id
-            }
-          })
-          .auth(admin.username, admin.password)
-          .expect(201);
+              _id: _.last(commands)._id
+            }, {
+              type: 'group',
+              _id: group._id
+            }],
+            queue: 'test'
+          };
 
-        group = result.body;
+          let result = yield request
+            .post('/groups')
+            .send(payload)
+            .auth(admin.username, admin.password)
+            .expect(201);
+
+          group = _.merge(result.body, payload);
+        }
       });
 
-      it('should delete single group', function * () {
+      it('should retrieve single group', function* () {
         yield request
-          .delete('/groups/' + group._id)
+          .get(`/groups/${group._id}`)
           .auth(admin.username, admin.password)
+          .expect(function(result) {
+            expect(result.body.data).to.has.property('name');
+            expect(result.body.data).to.has.property('queue');
+            expect(result.body.data).to.has.property('enabled');
+            expect(result.body.data).to.has.property('executionType');
+            expect(result.body.data).to.has.property('members');
+            expect(result.body.data).to.has.property('createdAt');
+          })
           .expect(200);
+      });
 
-        expect(yield Group.findById(group._id).exec()).to.be.equal(null);
+      it('should retrieve single group', function* () {
+        yield request
+          .get(`/groups/${group._id}`)
+          .query({fields: 'name,members'})
+          .auth(admin.username, admin.password)
+          .expect(function(result) {
+            expect(result.body.data).to.has.property('name');
+            expect(result.body.data).to.has.property('members');
+            expect(result.body.data).to.not.has.property('queue');
+            expect(result.body.data).to.not.has.property('enabled');
+            expect(result.body.data).to.not.has.property('executionType');
+            expect(result.body.data).to.not.has.property('createdAt');
+          })
+          .expect(200);
+      });
+
+      it('should retrieve single group', function* () {
+        yield request
+          .get(`/groups/${group._id}`)
+          .query({fields: 'name,members,executionType', expand: 1})
+          .auth(admin.username, admin.password)
+          .expect(function(result) {
+            expect(result.body.data).to.has.property('name');
+            expect(result.body.data).to.has.property('executionType');
+            expect(result.body.data).to.has.property('members');
+            let checkMember = function(member) {
+              expect(member).to.has.property('type');
+              expect(member).to.has.property('_id');
+              expect(member).to.has.property('_uri');
+              if (member.type === 'group') {
+                expect(member).to.has.property('name');
+                expect(member).to.has.property('executionType');
+                expect(member).to.has.property('members');
+                _.each(member.members, checkMember);
+              } else if (member.type === 'command') {
+              } else {
+                throw new Error(`${member.type} type is invalid.`);
+              }
+            };
+            _.each(result.body.data.members, checkMember);
+          })
+          .expect(200);
       });
     });
 
     describe('PATCH /groups/:id', function() {
       let group;
 
-      before(function * () {
-        let result = yield request
-          .post('/commands')
-          .send({name: 'sleepy-head-5', command: 'sleep 2'})
-          .auth(admin.username, admin.password)
-          .expect(201);
+      before(function* () {
+        let command;
 
-        result = yield request
-          .post('/groups')
-          .send({
-            name: 'test group 3',
-            queue: 'test',
-            group: {
+        {
+          let payload = {
+            name: 'command ' + randString(8),
+            command: 'sleep 1'
+          };
+
+          let result = yield request
+            .post('/commands')
+            .send(payload)
+            .auth(admin.username, admin.password)
+            .expect(201);
+
+          command = _.merge(result.body, payload);
+        }
+
+        {
+          let payload = {
+            name: 'group ' + randString(12),
+            members: [{
               type: 'command',
-              _id: result.body._id
-            }
-          })
-          .auth(admin.username, admin.password)
-          .expect(201);
+              _id: command._id
+            }],
+            executionType: 'parallel',
+            queue: 'test'
+          };
 
-        group = result.body;
+          let res = yield request
+            .post('/groups')
+            .send(payload)
+            .auth(admin.username, admin.password)
+            .expect(201);
+
+          group = _.merge(res.body, payload);
+        }
       });
 
-      it('should update single group', function * () {
-        yield request
-          .patch('/groups/' + group._id)
-          .send({
-            name: 'updated',
-            group: {
-              type: 'serial',
-              groups: [{
-                type: 'command',
-                _id: group._id
-              }, {
-                type: 'command',
-                _id: group._id
-              }]
-            }
-          })
-          .auth(admin.username, admin.password)
-          .expect(200);
+      describe('Given a non-existing group', function() {
+        it('should return 404', function* () {
+          yield request
+            .patch(`/groups/${new ObjectId().toString()}`)
+            .send({name: 'group ' + randString(12)})
+            .auth(admin.username, admin.password)
+            .expect(function(res) {
+              expect(res.body).to.has.property('code', 'NOT_FOUND');
+            })
+            .expect(404);
+        });
+      });
 
-        let dbGroup = yield Group.findById(group._id).exec();
-        expect(dbGroup.name).to.equal('updated');
-        expect(dbGroup.queue).to.equal('test');
-        expect(dbGroup.group.type).to.equal('serial');
+      describe('Given an existing group', function() {
+        describe('Given parameters', function() {
+          it('should update group', function* () {
+            let payload = {
+              name: 'group ' + randString(12),
+              executionType: 'series'
+            };
+
+            yield request
+              .patch(`/groups/${group._id}`)
+              .send(payload)
+              .auth(admin.username, admin.password)
+              .expect(200);
+
+            let result = yield Group
+              .findOne({_id: group._id})
+              .exec();
+
+            expect(result.name).to.not.equal(group.name);
+            expect(result.executionType).to.not.equal(group.executionType);
+            expect(result.name).to.equal(payload.name);
+            expect(result.executionType).to.equal(payload.executionType);
+          });
+
+          describe('Given members', function() {
+            let command;
+
+            before(function* () {
+              let payload = {
+                name: 'command ' + randString(8),
+                command: 'sleep 1'
+              };
+
+              let result = yield request
+                .post('/commands')
+                .send(payload)
+                .auth(admin.username, admin.password)
+                .expect(201);
+
+              command = _.merge(result.body, payload);
+            });
+
+            it('should update members', function* () {
+              let payload = {
+                members: [{
+                  type: 'command',
+                  _id: command._id
+                }]
+              };
+
+              yield request
+                .patch(`/groups/${group._id}`)
+                .send(payload)
+                .auth(admin.username, admin.password)
+                .expect(200);
+
+              let result = yield Group
+                .findOne({_id: group._id})
+                .populate({path: 'members', select: {command: 1}})
+                .exec();
+
+              expect(_.first(result.members).command.toString())
+                .to.equal(command._id);
+            });
+          });
+        });
+
+        describe('Given invalid parameters', function() {
+          it('should return 400', function* () {
+            let payload = {
+              members: [{
+                type: 'command',
+                _id: new ObjectId().toString()
+              }]
+            };
+
+            let res = yield request
+              .patch(`/groups/${group._id}`)
+              .send(payload)
+              .auth(admin.username, admin.password)
+              .expect(400);
+
+            expect(res.body).to.has.property('code', 'INVALID_REQUEST');
+          });
+        });
+      });
+    });
+
+    describe('DELETE /groups/:id', function() {
+      let group;
+
+      before(function* () {
+        let command;
+
+        {
+          let payload = {
+            name: 'command ' + randString(8),
+            command: 'sleep 1'
+          };
+
+          let result = yield request
+            .post('/commands')
+            .send(payload)
+            .auth(admin.username, admin.password)
+            .expect(201);
+
+          command = _.merge(result.body, payload);
+        }
+
+        {
+          let payload = {
+            name: 'group ' + randString(12),
+            members: [{
+              type: 'command',
+              _id: command._id
+            }],
+            executionType: 'parallel',
+            queue: 'test'
+          };
+
+          let res = yield request
+            .post('/groups')
+            .send(payload)
+            .auth(admin.username, admin.password)
+            .expect(201);
+
+          group = _.merge(res.body, payload);
+        }
+      });
+
+      describe('Given non-existing group', function() {
+        it('should return 404', function* () {
+          yield request
+            .delete(`/groups/${new ObjectId().toString()}`)
+            .auth(admin.username, admin.password)
+            .expect(404);
+        });
+      });
+
+      describe('Given existing group', function() {
+        it('should remove group', function* () {
+          yield request
+            .delete(`/groups/${group._id}`)
+            .auth(admin.username, admin.password)
+            .expect(200);
+
+          let result = yield Group
+            .findOne({_id: group._id})
+            .exec();
+
+          expect(result).to.equal(null);
+        });
       });
     });
   });

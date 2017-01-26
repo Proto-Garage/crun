@@ -7,11 +7,13 @@ let statusCodes = {
   UNAUTHORIZED: 401,
   INVALID_ROLE_OPERATION: 400,
   NOT_FOUND: 404,
-  FORBIDDEN: 403
+  FORBIDDEN: 403,
+  INVALID_REQUEST: 400,
+  TOKEN_EXPIRED: 401
 };
 
 export default [
-  function * httpLogger(next) {
+  function* httpLogger(next) {
     let request = {
       method: this.request.method,
       url: this.request.originalUrl,
@@ -33,11 +35,10 @@ export default [
     }
     logger('response', response);
   },
-  function * handleErrors(next) {
+  function* handleErrors(next) {
     try {
       yield next;
     } catch (err) {
-      console.error(err);
       if (err instanceof AppError) {
         this.body = err.toObject();
         this.status = statusCodes[err.code] || 400;
@@ -60,7 +61,7 @@ export default [
       }
     }
   },
-  function * setBaseUrl(next) {
+  function* setBaseUrl(next) {
     this.baseUrl = process.env.BASE_URL;
     yield next;
   }

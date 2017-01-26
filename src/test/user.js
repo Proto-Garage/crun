@@ -5,7 +5,7 @@ describe('User Model', function() {
   this.timeout(10000);
 
   describe('Given correct credentials', function() {
-    it('should return true', function * () {
+    it('should return true', function* () {
       let userInfo = {
         username: 'test_user_1',
         password: '123456Seven'
@@ -19,7 +19,7 @@ describe('User Model', function() {
   });
 
   describe('Given incorrect credentials', function() {
-    it('should return INVALID_USERNAME', function * () {
+    it('should return INVALID_USERNAME', function* () {
       let userInfo = {
         username: 'test_user_2',
         password: '123456Seven'
@@ -38,7 +38,7 @@ describe('User Model', function() {
       }
     });
 
-    it('should return INVALID_PASSWORD', function * () {
+    it('should return INVALID_PASSWORD', function* () {
       let userInfo = {
         username: 'test_user_3',
         password: '123456Seven'

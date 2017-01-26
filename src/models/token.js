@@ -14,15 +14,13 @@ let schema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'User'
   },
-  createdAt: Date
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
 });
 
-schema.pre('save', function(next) {
-  this.createdAt = new Date();
-  next();
-});
-
-schema.statics.cleanUp = function * () {
+schema.statics.cleanUp = function* () {
   yield this
     .model('User')
     .remove({createdAt: {
