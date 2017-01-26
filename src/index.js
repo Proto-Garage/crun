@@ -10,6 +10,9 @@ import bootloaders from './bootloaders';
 import json from 'koa-json';
 import compose from 'koa-compose';
 import bodyParser from 'koa-bodyparser';
+import Promise from 'bluebird';
+
+const mkdir = Promise.promisify(require('fs').mkdir);
 
 let logger = debug('boot');
 let router = require('koa-router')();
@@ -97,6 +100,15 @@ global.app.started = co(function* () {
     });
     yield admin.save();
   }
+
+  try {
+    yield mkdir(process.env.COMMAND_LOGS_DIR, 0o755);
+  } catch(err) {
+    if (err.code !== 'EEXIST') {
+      throw err;
+    }
+  }
+
 
   app
     .use(router.routes())

@@ -4,6 +4,3 @@ machine:
   node:
     version:
       6.9.2
-test:
-  override:
-    - sudo npm test
