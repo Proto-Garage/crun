@@ -12,11 +12,13 @@ let schema = new Schema({
   },
   username: {
     type: String,
-    required: true
+    required: true,
+    match: /^[A-Za-z0-9_]{1,32}$/
   },
   password: {
     type: String,
-    required: true
+    required: true,
+    match: /^([^ ]+){8,32}$/
   },
   creator: {
     type: Schema.Types.ObjectId,

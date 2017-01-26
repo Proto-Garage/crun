@@ -45,46 +45,66 @@ describe('CRUN API', function() {
         role = result.body;
       });
 
-      it('should create new user', function* () {
-        let params = {
-          username: 'users_' + randString(6),
-          password: randString(16),
-          roles: [role._id]
-        };
+      describe('Given valid parameters', function() {
+        it('should create new user', function* () {
+          let params = {
+            username: 'users_' + randString(6),
+            password: randString(16),
+            roles: [role._id]
+          };
 
-        let result = yield request
-          .post('/users')
-          .send(params)
-          .auth(admin.username, admin.password)
-          .expect(201)
-          .expect(function(res) {
-            expect(res.body).to.has.property('uri');
-            expect(res.body).to.has.property('_id');
-          });
+          let result = yield request
+            .post('/users')
+            .send(params)
+            .auth(admin.username, admin.password)
+            .expect(201)
+            .expect(function(res) {
+              expect(res.body).to.has.property('uri');
+              expect(res.body).to.has.property('_id');
+            });
 
-        let user = yield User
-          .findById(result.body._id)
-          .populate('roles')
-          .lean(true)
-          .exec();
+          let user = yield User
+            .findById(result.body._id)
+            .populate('roles')
+            .lean(true)
+            .exec();
 
-        expect(user).to.has.property('username', params.username);
-        expect(user).to.has.property('roles');
+          expect(user).to.has.property('username', params.username);
+          expect(user).to.has.property('roles');
+        });
       });
 
-      it('should return invalid request', function* () {
-        let params = {
-          username: 'users_' + randString(6)
-        };
+      describe('Given invalid parameters', function() {
+        it('should return invalid request', function* () {
+          let params = {
+            username: 'users_' + randString(6)
+          };
 
-        yield request
-          .post('/users')
-          .send(params)
-          .auth(admin.username, admin.password)
-          .expect(function(res) {
-            expect(res.body).to.has.property('code', 'INVALID_REQUEST');
-          })
-          .expect(400);
+          yield request
+            .post('/users')
+            .send(params)
+            .auth(admin.username, admin.password)
+            .expect(function(res) {
+              expect(res.body).to.has.property('code', 'INVALID_REQUEST');
+            })
+            .expect(400);
+        });
+
+        it('should return invalid request', function* () {
+          let params = {
+            username: 'users_' + randString(6),
+            password: randString(6)
+          };
+
+          yield request
+            .post('/users')
+            .send(params)
+            .auth(admin.username, admin.password)
+            .expect(function(res) {
+              expect(res.body).to.has.property('code', 'INVALID_REQUEST');
+            })
+            .expect(400);
+        });
       });
     });
 
@@ -138,7 +158,6 @@ describe('CRUN API', function() {
             expect(res.body).to.has.property('links');
             expect(res.body.links).to.has.property('self');
             expect(res.body).to.has.property('data');
-            expect(res.body.data).to.has.property('_id');
             expect(res.body.data).to.has.property('username');
             expect(res.body.data).to.has.property('createdAt');
             expect(res.body.data).to.has.property('roles');

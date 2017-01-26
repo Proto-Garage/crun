@@ -11,7 +11,8 @@
     "eslint": "eslint src/",
     "mocha": "env $(cat .env) mocha --require co-mocha --require ./index --require babel-polyfill --bail dist/test",
     "test": "npm run eslint && npm run flushdb && npm run build && npm run mocha",
-    "nsp": "nsp check --output summary"
+    "nsp": "nsp check --output summary",
+    "docs": "bootprint swagger docs/api.yml dist/docs"
   },
   "license": "ISC",
   "devDependencies": {
@@ -20,6 +21,8 @@
     "babel-plugin-transform-builtin-extend": "^1.1.0",
     "babel-preset-es2015": "^6.18.0",
     "babel-preset-react": "^6.16.0",
+    "bootprint": "^1.0.0",
+    "bootprint-swagger": "^1.0.1",
     "browserify": "^13.1.1",
     "chai": "^3.5.0",
     "co-mocha": "^1.1.3",
@@ -80,8 +83,14 @@
         "error",
         10
       ],
-      "comma-dangle": ["error", "never"],
-      "arrow-parens": ["error", "as-needed"],
+      "comma-dangle": [
+        "error",
+        "never"
+      ],
+      "arrow-parens": [
+        "error",
+        "as-needed"
+      ],
       "no-invalid-this": "off",
       "require-jsdoc": "off"
     }

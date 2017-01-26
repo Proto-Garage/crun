@@ -1,127 +1,796 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html class="no-js" lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Crun</title>
-
-    <!-- Bootstrap -->
-    <link href="dist/css/lib/bootstrap.css" rel="stylesheet">
-    <link rel="stylesheet" href="dist/css/lib/font-awesome.css">
-
-    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
-    <![endif]-->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CRUN API | API Reference</title>
+    <link rel="stylesheet" href="stylesheets/foundation.min.css" />
+    <link rel="stylesheet" href="stylesheets/spectacle.min.css" />
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <!-- <script src="javascripts/foundation.js"></script> -->
+    <script src="javascripts/spectacle.min.js"></script>
   </head>
-  <body>
-
-    <nav class="navbar navbar-default">
-      <div class="container-fluid">
-        <!-- Brand and toggle get grouped for better mobile display -->
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="#">CRUN</a>
-        </div>
-
-        <!-- Collect the nav links, forms, and other content for toggling -->
-        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-          <form class="navbar-form navbar-left">
-            <div class="form-group">
-              <input type="text" class="form-control" placeholder="Search">
-            </div>
-            <button type="submit" class="btn btn-default">
-              <i class="fa fa-search"></i>
-            </button>
-          </form>
-          <ul class="nav navbar-nav navbar-right">
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                  <i class="fa fa-user"></i>
-                 <span class="caret"></span>
-              </a>
-              <ul class="dropdown-menu">
-                <li><a href="#"><i class="fa fa-power-off"></i> Log Out</a></li>
-              </ul>
-            </li>
-          </ul>
-        </div><!-- /.navbar-collapse -->
-      </div><!-- /.container-fluid -->
-    </nav>
-    
-    <div class="container">
-      <div class="row">
-        <div class="col-sm-12">
-          <div>
-            <!-- Nav tabs -->
-            <ul class="nav nav-tabs" role="tablist">
-              <li role="presentation" class="active"><a href="#user" aria-controls="user" role="tab" data-toggle="tab">User</a></li>
-              <li role="presentation"><a href="#roles" aria-controls="roles" role="tab" data-toggle="tab">Roles</a></li>
-              <li role="presentation"><a href="#command" aria-controls="command" role="tab" data-toggle="tab">Command</a></li>
-              <li role="presentation"><a href="#group" aria-controls="group" role="tab" data-toggle="tab">Group</a></li>
-              <li role="presentation"><a href="#execution" aria-controls="execution" role="tab" data-toggle="tab">Execution</a></li>
-            </ul>
-
-            <!-- Tab panes -->
-            <div class="tab-content">
-              <div role="tabpanel" class="tab-pane active" id="user">
-                <div class="container" style="margin-top:30px;">
-                  <table class="table table-responsive">
-                    <thead>
-                      <td>Username</td>
-                      <td>Created At</td>
-                      <td>Roles</td>
-                      <td>Action</td>
-                    </thead>
-                    <tbody>
-                      <td>user123</td>
-                      <td>01/01/2016</td>
-                      <td>
-                        <span class="label label-success">Admin</span>
-                        <span class="label label-default">Frontend</span>
-                      </td>
-                      <td>
-                        <button class="btn btn-warning">
-                          <i class="fa fa-pencil"></i>
-                        </button>
-                        <button class="btn btn-danger">
-                          <i class="fa fa-trash-o"></i>
-                        </button>
-                      </td>
-                    </tbody>
-                  </table>
-                  
-                  <div class="row">
-                    <div class="col-sm-2">
-                      <button class="btn btn-success"><i class="fa fa-plus"></i> Add User</button>
-                    </div>
-                  </div>
-
-                </div>
+  <body id="spectacle">
+    <div id="page" class="drawer-layout drawer-slide-right-large">
+      <div id="sidebar">
+        <button class="close-button" aria-label="Close menu" type="button" data-drawer-close>
+          <span aria-hidden="true">×</span>
+        </button>
+        <nav id="nav" role="navigation">
+          <h5>API Reference</h5>
+          <a href="#introduction">Introduction</a>
+          <h5>Paths</h5>
+          <!-- <section>
+                <a href="#path--users">/users</a>
+                <ul> -->
+          <!-- <li> -->
+          <a href="#operation--users-post"> POST /users </a>
+          <!-- </li> -->
+          <!-- <li> -->
+          <a href="#operation--users-get"> GET /users </a>
+          <!-- </li> -->
+          <!-- </ul>
+              </section> -->
+          <!-- <section>
+                <a href="#path--users--userId-">/users/{userId}</a>
+                <ul> -->
+          <!-- <li> -->
+          <a href="#operation--users--userId--get"> GET /users/{userId} </a>
+          <!-- </li> -->
+          <!-- <li> -->
+          <a href="#operation--users--userId--delete"> DELETE /users/{userId} </a>
+          <!-- </li> -->
+          <!-- <li> -->
+          <a href="#operation--users--userId--patch"> PATCH /users/{userId} </a>
+          <!-- </li> -->
+          <!-- </ul>
+              </section> -->
+          <h5>Schema Definitions</h5>
+          <a href="#definition-error"> error </a>
+          <a href="#definition-id"> id </a>
+          <a href="#definition-password"> password </a>
+          <a href="#definition-username"> username </a>
+        </nav>
+      </div>
+      <div id="docs" class="row collapse expanded drawer" data-drawer>
+        <button class="floating-menu-icon" type="button" data-drawer-slide="right">
+          <span class="hamburger"></span>
+        </button>
+        <div class="example-box doc-content"></div>
+        <article>
+          <div id="introduction" data-traverse-target="introduction">
+            <h1 class="doc-title">CRUN API
+              <span>API Reference</span>
+            </h1>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <h1 id="execute-shell-commands-remotely-via-http">Execute shell commands remotely via http</h1>
+                <p>Find source code of this API
+                  <a href="https://github.com/Proto-Garage/crun">here</a>
+                </p>
               </div>
-              <div role="tabpanel" class="tab-pane" id="roles">Roles</div>
-              <div role="tabpanel" class="tab-pane" id="command">Command</div>
-              <div role="tabpanel" class="tab-pane" id="group">Group</div>
-              <div role="tabpanel" class="tab-pane" id="execution">Execution</div>
+              <div class="doc-examples">
+                <section>
+                  <h5>API Endpoint</h5>
+                  <div class="hljs"> <pre><code>https://crun.raise88.com</code></pre> </div>
+                  <!--
+                    <h5>Request Content-Types:
+                      <span>application/json</span>
+                    </h5>
+          
+                    <h5>Response Content-Types:
+                      <span>application/json</span>
+                    </h5>
+                  -->
+                  <h5>Schemes:
+                    <span>http, https</span>
+                  </h5>
+                  <h5>Version:
+                    <span>0.3.0</span>
+                  </h5>
+                </section>
+              </div>
             </div>
           </div>
-        </div>
+          <h1>Paths</h1>
+          <span id="path--users"></span>
+          <div id="operation--users-get" class="operation panel" data-traverse-target="operation--users-get">
+            <h2 class="operation-title">
+              <span class="operation-name">
+                <span class="operation-name">GET</span>
+                <span class="operation-path">/users</span>
+              </span>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-description">
+                  <p>Retrieve <code>User</code> objects. <code>User</code> objects are sorted based on the <code>createdAt</code> field in descending order.</p>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-params">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">limit</div>
+                    </div>
+                    <div class="prop-value">
+                      <p>Number of <code>User</code> objects to return.</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-inner">
+                    <div class="prop-name param-label">type</div>
+                    <div class="prop-value">
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits">, { x ∈ ℤ | 0 ≤ x ≤ 1000 }</span>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-inner">
+                    <div class="prop-name param-label">in</div>
+                    <div class="prop-value">query</div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">skip</div>
+                    </div>
+                    <div class="prop-value">
+                      <p>Number of <code>User</code> objects to skip.</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-inner">
+                    <div class="prop-name param-label">type</div>
+                    <div class="prop-value">
+                      <span class="json-property-type">integer</span>
+                      <span class="json-property-range" title="Value limits">, { x ∈ ℤ | 0 ≤ x ≤ 1000 }</span>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-inner">
+                    <div class="prop-name param-label">in</div>
+                    <div class="prop-value">query</div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">fields</div>
+                    </div>
+                    <div class="prop-value">
+                      <p>List for fields to return. (Example) <code>username,createdAt,roles</code></p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-inner">
+                    <div class="prop-name param-label">type</div>
+                    <div class="prop-value">
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-inner">
+                    <div class="prop-name param-label">in</div>
+                    <div class="prop-value">query</div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples"></div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-responses">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">200 OK</div>
+                      <div class="prop-ref"></div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>List of <code>User</code> objects.</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Response Example
+                    <span>(200 OK)</span>
+                  </h5>
+                  <div class="hljs"><pre><code class="hljs json">{
+  <span class="hljs-attr">&quot;properties&quot;</span>: {
+    <span class="hljs-attr">&quot;data&quot;</span>: {
+      <span class="hljs-attr">&quot;items&quot;</span>: {
+        <span class="hljs-attr">&quot;properties&quot;</span>: {
+          <span class="hljs-attr">&quot;_id&quot;</span>: {
+            <span class="hljs-attr">&quot;$ref&quot;</span>: <span class="hljs-string"><a href="#definition-id">&quot;#/definitions/id&quot;</a></span>
+          },
+          <span class="hljs-attr">&quot;createdAt&quot;</span>: {
+            <span class="hljs-attr">&quot;format&quot;</span>: <span class="hljs-string">&quot;date-time&quot;</span>,
+            <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;string&quot;</span>
+          },
+          <span class="hljs-attr">&quot;roles&quot;</span>: {
+            <span class="hljs-attr">&quot;items&quot;</span>: {
+              <span class="hljs-attr">&quot;$ref&quot;</span>: <span class="hljs-string"><a href="#definition-id">&quot;#/definitions/id&quot;</a></span>
+            },
+            <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;array&quot;</span>
+          },
+          <span class="hljs-attr">&quot;uri&quot;</span>: {
+            <span class="hljs-attr">&quot;pattern&quot;</span>: <span class="hljs-string">&quot;^https?:\\/\\/.+\\/users/[a-f\\d]{24}$&quot;</span>,
+            <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;string&quot;</span>
+          },
+          <span class="hljs-attr">&quot;username&quot;</span>: {
+            <span class="hljs-attr">&quot;$ref&quot;</span>: <span class="hljs-string"><a href="#definition-username">&quot;#/definitions/username&quot;</a></span>
+          }
+        },
+        <span class="hljs-attr">&quot;required&quot;</span>: [
+          <span class="hljs-string">&quot;_id&quot;</span>,
+          <span class="hljs-string">&quot;uri&quot;</span>
+        ],
+        <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;object&quot;</span>
+      },
+      <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;array&quot;</span>
+    },
+    <span class="hljs-attr">&quot;links&quot;</span>: {
+      <span class="hljs-attr">&quot;properties&quot;</span>: {
+        <span class="hljs-attr">&quot;last&quot;</span>: {
+          <span class="hljs-attr">&quot;pattern&quot;</span>: <span class="hljs-string">&quot;^https?:\\/\\/.+\\/users\\?limit=\\d+&amp;skip=\\d+$&quot;</span>,
+          <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;string&quot;</span>
+        },
+        <span class="hljs-attr">&quot;next&quot;</span>: {
+          <span class="hljs-attr">&quot;pattern&quot;</span>: <span class="hljs-string">&quot;^https?:\\/\\/.+\\/users\\?limit=\\d+&amp;skip=\\d+$&quot;</span>,
+          <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;string&quot;</span>
+        },
+        <span class="hljs-attr">&quot;self&quot;</span>: {
+          <span class="hljs-attr">&quot;pattern&quot;</span>: <span class="hljs-string">&quot;^https?:\\/\\/.+\\/users\\?limit=\\d+&amp;skip=\\d+$&quot;</span>,
+          <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;string&quot;</span>
+        }
+      },
+      <span class="hljs-attr">&quot;required&quot;</span>: [
+        <span class="hljs-string">&quot;self&quot;</span>,
+        <span class="hljs-string">&quot;last&quot;</span>
+      ],
+      <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;object&quot;</span>
+    }
+  },
+  <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;object&quot;</span>
+}
+</code></pre> </div>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="operation--users-post" class="operation panel" data-traverse-target="operation--users-post">
+            <h2 class="operation-title">
+              <span class="operation-name">
+                <span class="operation-name">POST</span>
+                <span class="operation-path">/users</span>
+              </span>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-description">
+                  <p>Create new <code>User</code> object.</p>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-body">
+                  <div class="prop-row">
+                    <div class="prop-name">
+                      <div class="swagger-request-model"> </div>
+                    </div>
+                    <div class="prop-value columns small-6">
+                      <!-- <div class="swagger-request-description"> -->
+                      <p><code>User</code> object.</p>
+                      <!-- </div> -->
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Request Example</h5>
+                  <div class="hljs"><pre><code class="hljs json">{
+  <span class="hljs-attr">&quot;properties&quot;</span>: {
+    <span class="hljs-attr">&quot;password&quot;</span>: {
+      <span class="hljs-attr">&quot;$ref&quot;</span>: <span class="hljs-string"><a href="#definition-password">&quot;#/definitions/password&quot;</a></span>
+    },
+    <span class="hljs-attr">&quot;roles&quot;</span>: {
+      <span class="hljs-attr">&quot;items&quot;</span>: {
+        <span class="hljs-attr">&quot;$ref&quot;</span>: <span class="hljs-string"><a href="#definition-id">&quot;#/definitions/id&quot;</a></span>
+      },
+      <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;array&quot;</span>
+    },
+    <span class="hljs-attr">&quot;username&quot;</span>: {
+      <span class="hljs-attr">&quot;$ref&quot;</span>: <span class="hljs-string"><a href="#definition-username">&quot;#/definitions/username&quot;</a></span>
+    }
+  },
+  <span class="hljs-attr">&quot;required&quot;</span>: [
+    <span class="hljs-string">&quot;username&quot;</span>,
+    <span class="hljs-string">&quot;password&quot;</span>
+  ],
+  <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;object&quot;</span>
+}
+</code></pre> </div>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-responses">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">201 Created</div>
+                      <div class="prop-ref"></div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p><code>User</code> object reference.</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">400 Bad Request</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/error">error</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>Invalid request error</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Response Example
+                    <span>(201 Created)</span>
+                  </h5>
+                  <div class="hljs"><pre><code class="hljs json">{
+  <span class="hljs-attr">&quot;properties&quot;</span>: {
+    <span class="hljs-attr">&quot;_id&quot;</span>: {
+      <span class="hljs-attr">&quot;$ref&quot;</span>: <span class="hljs-string"><a href="#definition-id">&quot;#/definitions/id&quot;</a></span>
+    },
+    <span class="hljs-attr">&quot;uri&quot;</span>: {
+      <span class="hljs-attr">&quot;pattern&quot;</span>: <span class="hljs-string">&quot;^https?:\\/\\/.+\\/users/[a-f\\d]{24}$&quot;</span>,
+      <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;string&quot;</span>
+    }
+  },
+  <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;object&quot;</span>
+}
+</code></pre> </div>
+                </section>
+                <section>
+                  <h5>Response Example
+                    <span>(400 Bad Request)</span>
+                  </h5>
+                  <div class="hljs"><pre><code class="hljs json">{
+  <span class="hljs-attr">&quot;code&quot;</span>: <span class="hljs-string">&quot;string&quot;</span>,
+  <span class="hljs-attr">&quot;message&quot;</span>: <span class="hljs-string">&quot;string&quot;</span>
+}
+</code></pre> </div>
+                </section>
+              </div>
+            </div>
+          </div>
+          <span id="path--users--userId-"></span>
+          <div id="operation--users--userId--delete" class="operation panel" data-traverse-target="operation--users--userId--delete">
+            <h2 class="operation-title">
+              <span class="operation-name">
+                <span class="operation-name">DELETE</span>
+                <span class="operation-path">/users/{userId}</span>
+              </span>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-description">
+                  <p>Remove <code>User</code> object</p>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-params">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">userId</div>
+                      <span class="json-property-required"></span>
+                    </div>
+                    <div class="prop-value">
+                      <p>User identification code</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-inner">
+                    <div class="prop-name param-label">type</div>
+                    <div class="prop-value">
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-inner">
+                    <div class="prop-name param-label">in</div>
+                    <div class="prop-value">path</div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples"></div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-responses">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">200 OK</div>
+                    </div>
+                    <div class="prop-value">
+                      <p>OK</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">404 Not Found</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/error">error</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>User not found error</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Response Example
+                    <span>(404 Not Found)</span>
+                  </h5>
+                  <div class="hljs"><pre><code class="hljs json">{
+  <span class="hljs-attr">&quot;code&quot;</span>: <span class="hljs-string">&quot;string&quot;</span>,
+  <span class="hljs-attr">&quot;message&quot;</span>: <span class="hljs-string">&quot;string&quot;</span>
+}
+</code></pre> </div>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="operation--users--userId--get" class="operation panel" data-traverse-target="operation--users--userId--get">
+            <h2 class="operation-title">
+              <span class="operation-name">
+                <span class="operation-name">GET</span>
+                <span class="operation-path">/users/{userId}</span>
+              </span>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-description">
+                  <p>Retrieve a <code>User</code> object given a <code>userId</code>.</p>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-params">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">userId</div>
+                      <span class="json-property-required"></span>
+                    </div>
+                    <div class="prop-value">
+                      <p>User identification code</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-inner">
+                    <div class="prop-name param-label">type</div>
+                    <div class="prop-value">
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-inner">
+                    <div class="prop-name param-label">in</div>
+                    <div class="prop-value">path</div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples"></div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-responses">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">200 OK</div>
+                      <div class="prop-ref"></div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p><code>User</code> object</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">404 Not Found</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/error">error</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>User not found error</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Response Example
+                    <span>(200 OK)</span>
+                  </h5>
+                  <div class="hljs"><pre><code class="hljs json">{
+  <span class="hljs-attr">&quot;properties&quot;</span>: {
+    <span class="hljs-attr">&quot;_id&quot;</span>: {
+      <span class="hljs-attr">&quot;$ref&quot;</span>: <span class="hljs-string"><a href="#definition-id">&quot;#/definitions/id&quot;</a></span>
+    },
+    <span class="hljs-attr">&quot;uri&quot;</span>: {
+      <span class="hljs-attr">&quot;pattern&quot;</span>: <span class="hljs-string">&quot;^https?:\\/\\/.+\\/users/[a-f\\d]{24}$&quot;</span>,
+      <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;string&quot;</span>
+    }
+  },
+  <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;object&quot;</span>
+}
+</code></pre> </div>
+                </section>
+                <section>
+                  <h5>Response Example
+                    <span>(404 Not Found)</span>
+                  </h5>
+                  <div class="hljs"><pre><code class="hljs json">{
+  <span class="hljs-attr">&quot;code&quot;</span>: <span class="hljs-string">&quot;string&quot;</span>,
+  <span class="hljs-attr">&quot;message&quot;</span>: <span class="hljs-string">&quot;string&quot;</span>
+}
+</code></pre> </div>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="operation--users--userId--patch" class="operation panel" data-traverse-target="operation--users--userId--patch">
+            <h2 class="operation-title">
+              <span class="operation-name">
+                <span class="operation-name">PATCH</span>
+                <span class="operation-path">/users/{userId}</span>
+              </span>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-operation-description">
+                  <p>Remove <code>User</code> object</p>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-request-body">
+                  <div class="prop-row">
+                    <div class="prop-name">
+                      <div class="swagger-request-model"> </div>
+                    </div>
+                    <div class="prop-value columns small-6">
+                      <!-- <div class="swagger-request-description"> -->
+                      <p><code>User</code> object.</p>
+                      <!-- </div> -->
+                    </div>
+                  </div>
+                </section>
+                <section class="swagger-request-params">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">userId</div>
+                      <span class="json-property-required"></span>
+                    </div>
+                    <div class="prop-value">
+                      <p>User identification code</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-inner">
+                    <div class="prop-name param-label">type</div>
+                    <div class="prop-value">
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-inner">
+                    <div class="prop-name param-label">in</div>
+                    <div class="prop-value">path</div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Request Example</h5>
+                  <div class="hljs"><pre><code class="hljs json">{
+  <span class="hljs-attr">&quot;properties&quot;</span>: {
+    <span class="hljs-attr">&quot;roles&quot;</span>: {
+      <span class="hljs-attr">&quot;items&quot;</span>: {
+        <span class="hljs-attr">&quot;$ref&quot;</span>: <span class="hljs-string"><a href="#definition-id">&quot;#/definitions/id&quot;</a></span>
+      },
+      <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;array&quot;</span>
+    }
+  },
+  <span class="hljs-attr">&quot;type&quot;</span>: <span class="hljs-string">&quot;object&quot;</span>
+}
+</code></pre> </div>
+                </section>
+              </div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="swagger-responses">
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">200 OK</div>
+                    </div>
+                    <div class="prop-value">
+                      <p>OK</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">400 Bad Request</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/error">error</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>Invalid request error</p>
+                    </div>
+                  </div>
+                  <div class="prop-row prop-group">
+                    <div class="prop-name">
+                      <div class="prop-title">404 Not Found</div>
+                      <div class="prop-ref">
+                        <span class="">
+                          <a class="json-schema-ref" href="#/definitions/error">error</a>
+                        </span>
+                      </div>
+                      <!-- <span class="swagger-global"></span> <span class="json-schema-reference"><a href=""></a></span> -->
+                    </div>
+                    <div class="prop-value">
+                      <p>User not found error</p>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <div class="doc-examples">
+                <section>
+                  <h5>Response Example
+                    <span>(400 Bad Request)</span>
+                  </h5>
+                  <div class="hljs"><pre><code class="hljs json">{
+  <span class="hljs-attr">&quot;code&quot;</span>: <span class="hljs-string">&quot;string&quot;</span>,
+  <span class="hljs-attr">&quot;message&quot;</span>: <span class="hljs-string">&quot;string&quot;</span>
+}
+</code></pre> </div>
+                </section>
+                <section>
+                  <h5>Response Example
+                    <span>(404 Not Found)</span>
+                  </h5>
+                  <div class="hljs"><pre><code class="hljs json">{
+  <span class="hljs-attr">&quot;code&quot;</span>: <span class="hljs-string">&quot;string&quot;</span>,
+  <span class="hljs-attr">&quot;message&quot;</span>: <span class="hljs-string">&quot;string&quot;</span>
+}
+</code></pre> </div>
+                </section>
+              </div>
+            </div>
+          </div>
+          <!-- <h1>Schema definitions</h1> -->
+          <h1>Models</h1>
+          <div id="definition-error" class="panel panel-definition" data-traverse-target="definition-error">
+            <h2 class="panel-title">
+              <a name="/definitions/error"></a>error:
+              <span class="json-property-type">
+                <span class="json-property-type">object</span>
+                <span class="json-property-range" title="Value limits"></span>
+              </span>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy"> </div>
+              <div class="doc-examples"></div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy">
+                <section class="json-schema-properties">
+                  <dl>
+                    <dt data-property-name="code">
+                      <span class="json-property-name">code:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-enum" title="Possible values">, x &isin; {
+                        <span class="json-property-enum-item">INVALID_REQUEST</span> ,
+                        <span class="json-property-enum-item">UNAUTHORIZED</span> ,
+                        <span class="json-property-enum-item">TOKEN_EXPIRED</span> ,
+                        <span class="json-property-enum-item">FORBIDDEN</span> ,
+                        <span class="json-property-enum-item">NOT_FOUND</span> ,
+                        <span class="json-property-enum-item">INVALID_ROLE_OPERATION</span> } </span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                    <dt data-property-name="message">
+                      <span class="json-property-name">message:</span>
+                      <span class="json-property-type">string</span>
+                      <span class="json-property-range" title="Value limits"></span>
+                      <span class="json-property-required"></span>
+                    </dt>
+                  </dl>
+                </section>
+              </div>
+            </div>
+          </div>
+          <div id="definition-id" class="panel panel-definition" data-traverse-target="definition-id">
+            <h2 class="panel-title">
+              <a name="/definitions/id"></a>id:
+              <span class="json-property-type">
+                <span class="json-property-type">string</span>
+                <span class="json-property-range" title="Value limits"></span>
+              </span>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy"> </div>
+              <div class="doc-examples"></div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy"> </div>
+            </div>
+          </div>
+          <div id="definition-password" class="panel panel-definition" data-traverse-target="definition-password">
+            <h2 class="panel-title">
+              <a name="/definitions/password"></a>password:
+              <span class="json-property-type">
+                <span class="json-property-type">string</span>
+                <span class="json-property-range" title="Value limits"></span>
+              </span>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy"> </div>
+              <div class="doc-examples"></div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy"> </div>
+            </div>
+          </div>
+          <div id="definition-username" class="panel panel-definition" data-traverse-target="definition-username">
+            <h2 class="panel-title">
+              <a name="/definitions/username"></a>username:
+              <span class="json-property-type">
+                <span class="json-property-type">string</span>
+                <span class="json-property-range" title="Value limits"></span>
+              </span>
+            </h2>
+            <div class="doc-row">
+              <div class="doc-copy"> </div>
+              <div class="doc-examples"></div>
+            </div>
+            <div class="doc-row">
+              <div class="doc-copy"> </div>
+            </div>
+          </div>
+          <div class="doc-row no-margin">
+            <div class="doc-copy doc-separator">
+              <a class="powered-by" href="http://sourcey.com/spectacle">Documentation by
+                <span>Spectacle</span>
+              </a>
+            </div>
+          </div>
+        </article>
       </div>
     </div>
-
-
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="dist/js/lib/bootstrap.js"></script>
   </body>
 </html>
