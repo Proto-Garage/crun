@@ -1,5 +1,5 @@
 export let PageController = {
-  index: function * () {
+  index: function* () {
     this.body = `crun ${require('../../package').version}`;
   }
 };

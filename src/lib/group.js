@@ -1,151 +1,179 @@
+/* globals AppError */
+import {EventEmitter} from 'events';
+import co from 'co';
+import STATUS from './status';
+import {acquireToken, releaseToken} from './queue';
+import {Group as GroupModel} from '../models/group';
+import {Command as CommandModel} from '../models/command';
+import Command from './command';
+import Promise from 'bluebird';
+import {generate as randString} from 'rand-token';
 import _ from 'lodash';
-import mongoose from 'mongoose';
 import url from 'url';
 
-export default class Group {
-
+export default class Group extends EventEmitter {
   /**
-   * Create command group object
-   * @param {object}  options
-   * @param {string}  options.type
-   * @param {Command} options.command
-   * @param {Group[]} options.groups
+   * Create group object
+   * @param {object} options
+   * @param {ObjectId} options.groupId
+   * @param {string} options.name
+   * @param {string} options.executionType
+   * @param {object[]} options.members
+   * @param {string} options.queue
    */
   constructor(options) {
-    if (!_.includes(['command', 'serial', 'parallel'], options.type)) {
-      throw new Error(`${options.type} is not supported.`);
-    }
-    this.options = options;
-    this.status = 'PENDING';
+    super();
+
+    this.groupId = options.groupId;
+    this.name = options.name;
+    this.executionType = options.executionType || 'series';
+    this.members = options.members || [];
+    this.queue = options.queue || randString(12);
+    this._startedAt = null;
+    this._elapsedTime = null;
+
+    this.status = STATUS.PENDING;
   }
 
-  toStatusObject() {
-    let toStatusObject = function(group) {
-      if (group.options.type === 'command') {
-        let obj = _.merge({},
-          _.pick(group.options, ['_id', 'type']),
-          _.pick(group, [
-            'status',
-            'startedAt',
-            'elapsedTime'
-          ]));
+  set status(status) {
+    this._status = status;
+    if (status === 'STARTED') {
+      this._startedAt = new Date();
+    }
+    if (status === STATUS.SUCCEEDED || status === STATUS.FAILED) {
+      this._elapsedTime = new Date() - this.startedAt;
+    }
+    this.emit('status', status);
+  }
 
-        if (obj.status === 'STARTED') {
-          obj.elapsedTime = Date.now() - obj.startedAt;
-        }
+  get status() {
+    return this._status;
+  }
 
-        if (obj.status !== 'PENDING') {
-          obj.log = url.resolve(
-            process.env.BASE_URL, '/logs/' + group.options.command.instanceId
-          );
-        }
-        return obj;
-      }
-      let obj = _.merge({},
-        _.pick(group.options, ['type']),
-        _.pick(group, ['status', 'startedAt', 'elapsedTime']));
+  get startedAt() {
+    return this._startedAt;
+  }
 
-      if (obj.status === 'STARTED') {
-        obj.elapsedTime = Date.now() - obj.startedAt;
-      }
-      obj.groups = _.map(group.options.groups, toStatusObject);
-      return obj;
-    };
+  get elapsedTime() {
+    if (this.status === STATUS.STARTED) {
+      return new Date() - this.startedAt;
+    }
 
-    return toStatusObject(this);
+    return this._elapsedTime;
   }
 
   * run() {
-    this.status = 'STARTED';
-    this.startedAt = Date.now();
+    this.status = STATUS.QUEUED;
+    let token = yield acquireToken(this.queue);
 
-    if (this.options.type === 'command') {
-      this.options.command.on('status', status => {
-        if (status === 'SUCCEEDED' || status === 'FAILED') {
-          this.elapsedTime = Date.now() - this.startedAt;
+    this.status = STATUS.STARTED;
+    try {
+      if (this.executionType === 'parallel') {
+        yield Promise.map(this.members, co.wrap(function* (member) {
+          yield member.run();
+        }));
+      } else if (this.executionType === 'series') {
+        for (let member of this.members) {
+          yield member.run();
         }
-        this.status = status;
-      });
-
-      yield this.options.command.run();
-    } else if (this.options.type === 'serial') {
-      try {
-        for (let group of this.options.groups) {
-          yield group.run();
-        }
-      } catch (err) {
-        this.elapsedTime = Date.now() - this.startedAt;
-        this.status = 'FAILED';
-        throw err;
       }
-      this.status = 'SUCCEEDED';
-    } else if (this.options.type === 'parallel') {
-      let errors = [];
-      yield _.map(this.options.groups, group => {
-        return function * () {
-          try {
-            yield group.run();
-          } catch (err) {
-            errors.push(err);
-          }
-        };
-      });
-
-      if (errors.length > 0) {
-        this.elapsedTime = Date.now() - this.startedAt;
-        this.status = 'FAILED';
-        throw errors;
-      }
-
-      this.elapsedTime = Date.now() - this.startedAt;
-      this.status = 'SUCCEEDED';
-    } else {
-      throw new Error(`${this.options.type} is not supported.`);
+      this.status = STATUS.SUCCEEDED;
+    } catch (err) {
+      this.status = STATUS.FAILED;
+      throw err;
+    } finally {
+      releaseToken(token);
     }
   }
 }
 
 /**
- * Check if object is a valid execution group
+ * Build group object
+ * @param {object} params
+ * @param {string} params.type
+ * @param {ObjectId} [params.command]
+ * @param {objectId} [params.group]
  */
-export function isValidGroup(group) {
-  if (!group.type) {
-    throw new Error('`type` is undefined');
-  }
-  if (!_.includes(['serial', 'parallel', 'command'], group.type)) {
-    throw new Error(`\`${group.type}\` is not a valid type`);
-  }
-  if (group.type === 'command') {
-    if (!group._id) {
-      throw new Error('`_id` is undefined');
+let _buildGroup = function* (params) {
+  if (params.type === 'command') {
+    let command = yield CommandModel
+      .findById(params.command)
+      .exec();
+
+    if (!command) {
+      throw new AppError('INVALID_REQUEST',
+        `${params.command} command does not exist.`);
     }
-    if (!mongoose.Types.ObjectId.isValid(group._id)) {
-      throw new Error(`\`${group._id}\` is not a valid ObjectId`);
+
+    return new Command({
+      commandId: command._id,
+      name: command.name,
+      cwd: command.cwd,
+      env: command.env,
+      command: command.command,
+      timeout: command.timeout
+    });
+  } else if (params.type === 'group') {
+    let group = yield GroupModel
+      .findById(params.group)
+      .populate({path: 'members', select: {
+        command: 1,
+        group: 1,
+        type: 1,
+        _id: 0
+      }})
+      .exec();
+
+    if (!group) {
+      throw new AppError('INVALID_REQUEST',
+        `${params.group} group does not exist.`);
     }
-  } else {
-    if (!group.groups) {
-      throw new Error('`groups` is undefined');
-    }
-    if (!_.isArray(group.groups)) {
-      throw new Error('`groups` should be an array');
-    }
-    _.each(group.groups, item => {
-      isValidGroup(item);
+
+    let members = yield Promise.map(group.members, co.wrap(_buildGroup));
+
+    return new Group({
+      groupId: group._id,
+      name: group.name,
+      executionType: group.executionType,
+      queue: group.queue,
+      members
     });
   }
-}
+};
 
 /**
- * Extract command ids
+ * Build group object
+ * @param {ObjectId} groupId
  */
-export function extractCommands(group) {
-  if (group.type === 'command') {
-    return [group._id];
+export let buildGroup = function* (groupId) {
+  let group = yield _buildGroup({
+    group: groupId,
+    type: 'group'
+  });
+
+  return group;
+};
+
+/**
+ * Extract status
+ */
+export let extractStatus = function(group) {
+  let status = {
+    status: group.status,
+    startedAt: group.startedAt,
+    elapsedTime: group.elapsedTime
+  };
+  if (group instanceof Command) {
+    status._id = group.commandId;
+    status.type = 'command';
+    status.log = url.resolve(process.env.BASE_URL, '/logs/' + group.instanceId);
+  } else if (group instanceof Group) {
+    status._id = group.groupId;
+    status.type = 'group';
+    status.members = _.map(group.members, member => {
+      return extractStatus(member);
+    });
   }
 
-  let accum = [];
-  for (let g of group.groups) {
-    accum = accum.concat(extractCommands(g));
-  }
-  return accum;
-}
+  return status;
+};

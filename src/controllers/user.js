@@ -3,8 +3,14 @@ import _ from 'lodash';
 import url from 'url';
 import qs from 'querystring';
 
+const DEFAULT_FIELDS_LIST = [
+  'username',
+  'createdAt',
+  'roles'
+];
+
 export let UserController = {
-  update: function * () {
+  update: function* () {
     let params = _.pick(this.request.body, ['roles']);
 
     let user = yield User.findByIdAndUpdate(this.params.id, params).exec();
@@ -14,7 +20,7 @@ export let UserController = {
     }
     this.status = 200;
   },
-  remove: function * () {
+  remove: function* () {
     let user = yield User
       .findOneAndRemove({creator: this.user, _id: this.params.id})
       .exec();
@@ -26,7 +32,7 @@ export let UserController = {
 
     this.status = 200;
   },
-  create: function * () {
+  create: function* () {
     let params = _.pick(this.request.body, [
       'username',
       'password',
@@ -45,10 +51,18 @@ export let UserController = {
 
     this.status = 201;
   },
-  findOne: function * () {
+  findOne: function* () {
+    let fields = DEFAULT_FIELDS_LIST;
+    if (this.query.fields) {
+      fields = _.intersection(fields, this.query.fields.split(','));
+    }
+
+    let query = {_id: this.params.id};
+    query.creator = this.user;
+
     let user = yield User
-      .findOne({_id: this.params.id, creator: this.user})
-      .select({username: 1, createdAt: 1, roles: 1})
+      .findOne(query)
+      .select(_.merge(Util.keyArrayToObject(fields), {_id: 0}))
       .lean(true)
       .exec();
 
@@ -64,27 +78,50 @@ export let UserController = {
       data: user
     };
   },
-  find: function * () {
+  find: function* () {
     let limit = Number.parseInt(this.query.limit, 10) || 10;
     let skip = Number.parseInt(this.query.skip, 10) || 0;
 
+    let fields = DEFAULT_FIELDS_LIST;
+    if (this.query.fields) {
+      fields = _.intersection(fields, this.query.fields.split(','));
+    }
+
+    let query = {creator: this.user};
+    let count = yield User.where(query).count();
+    if (skip >= count) {
+      this.body = {
+        links: {},
+        data: []
+      };
+    }
+
     let users = yield User
       .find({creator: this.user})
-      .select({username: 1, createdAt: 1, roles: 1})
-      .populate('roles')
+      .select(Util.keyArrayToObject(fields))
       .sort({createdAt: -1})
       .skip(skip)
       .limit(limit)
       .lean(true)
       .exec();
 
+    let links = {
+      self: url.resolve(this.baseUrl, '/commands') +
+        '?' + qs.stringify({limit, skip}),
+      last: url.resolve(this.baseUrl, '/commands') +
+        '?' + qs.stringify({
+          limit: count % limit,
+          skip: Math.floor(count / limit) * limit
+        })
+    };
+
+    if ((limit + skip) < count) {
+      links.next = url.resolve(this.baseUrl, '/commands') +
+        '?' + qs.stringify({limit, skip: limit + skip});
+    }
+
     this.body = {
-      links: {
-        self: url.resolve(this.baseUrl, '/users') +
-          '?' + qs.stringify({limit, skip}),
-        next: url.resolve(this.baseUrl, '/users') +
-          '?' + qs.stringify({limit, skip: limit})
-      },
+      links,
       data: _.map(users, item => {
         item.uri = url.resolve(this.baseUrl, '/users/' + item._id);
         return item;

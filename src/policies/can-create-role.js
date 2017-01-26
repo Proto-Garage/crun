@@ -1,14 +1,12 @@
 /* globals AppError */
 import _ from 'lodash';
 
-export let canCreateRole = function * (next) {
-  let operations = _(this.user.roles)
-    .map('operations')
-    .flatten()
-    .filter({name: 'WRITE_ROLE', role: 'all'})
+export let canCreateRole = function* (next) {
+  let permissions = _(this.permissions)
+    .filter({operation: 'CREATE_ROLE'})
     .value();
 
-  if (operations.length === 0) {
+  if (permissions.length === 0) {
     throw new AppError('FORBIDDEN', 'Cannot create a role.');
   }
   yield next;

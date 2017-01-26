@@ -16,18 +16,18 @@ describe('CRUN API', function() {
     password: process.env.ADMIN_PASSWORD
   };
 
-  before(function * () {
+  before(function* () {
     yield app.started;
     request = require('supertest')(app.server);
   });
 
-  after(function * () {
+  after(function* () {
     app.server.close();
   });
 
   describe('Commands', function() {
     describe('POST /commands', function() {
-      it('should create new command', function * () {
+      it('should create new command', function* () {
         let command = {
           name: 'sleep',
           command: 'sleep 5'
@@ -47,7 +47,7 @@ describe('CRUN API', function() {
         expect(command).to.has.property('name', 'sleep');
         expect(command).to.has.property('command', 'sleep 5');
       });
-      it('should return INVALID_REQUEST', function * () {
+      it('should return INVALID_REQUEST', function* () {
         yield request
           .post('/commands')
           .send({name: 'sleep'})
@@ -59,7 +59,7 @@ describe('CRUN API', function() {
       });
     });
     describe('GET /commands', function() {
-      before(function * () {
+      before(function* () {
         yield _.times(20, item => {
           return request
             .post('/commands')
@@ -68,7 +68,7 @@ describe('CRUN API', function() {
             .expect(201);
         });
       });
-      it('should retrieve all commands', function * () {
+      it('should retrieve all commands', function* () {
         yield request
           .get('/commands')
           .auth(admin.username, admin.password)
@@ -90,7 +90,7 @@ describe('CRUN API', function() {
     });
     describe('GET /commands/:id', function() {
       let command;
-      before(function * () {
+      before(function* () {
         let res = yield request
           .post('/commands')
           .send({name: 'sleepy', command: 'sleep 2'})
@@ -99,7 +99,7 @@ describe('CRUN API', function() {
 
         command = res.body;
       });
-      it('should retrieve single command', function * () {
+      it('should retrieve single command', function* () {
         yield request
           .get('/commands/' + command._id)
           .auth(admin.username, admin.password)
@@ -107,7 +107,6 @@ describe('CRUN API', function() {
             expect(res.body).to.has.property('links');
             expect(res.body.links).to.has.property('self');
             expect(res.body).to.has.property('data');
-            expect(res.body.data).to.has.property('_id');
             expect(res.body.data).to.has.property('name');
             expect(res.body.data).to.has.property('timeout');
             expect(res.body.data).to.has.property('command');
@@ -115,7 +114,7 @@ describe('CRUN API', function() {
           })
           .expect(200);
       });
-      it('should return 404', function * () {
+      it('should return 404', function* () {
         yield request
           .get('/commands/' + new ObjectId().toHexString())
           .auth(admin.username, admin.password)
@@ -127,7 +126,7 @@ describe('CRUN API', function() {
     });
     describe('DELETE /commands/:id', function() {
       let command;
-      before(function * () {
+      before(function* () {
         let res = yield request
           .post('/commands')
           .send({name: 'sleepy', command: 'sleep 2'})
@@ -136,7 +135,7 @@ describe('CRUN API', function() {
 
         command = res.body;
       });
-      it('should retrieve single command', function * () {
+      it('should retrieve single command', function* () {
         yield request
           .delete('/commands/' + command._id)
           .auth(admin.username, admin.password)
@@ -145,7 +144,7 @@ describe('CRUN API', function() {
         let dbCommand = yield Command.findById(command._id).exec();
         expect(dbCommand).to.be.equal(null);
       });
-      it('should return 404', function * () {
+      it('should return 404', function* () {
         yield request
           .get('/commands/' + new ObjectId().toHexString())
           .auth(admin.username, admin.password)
@@ -158,7 +157,7 @@ describe('CRUN API', function() {
     describe('PATCH /commands/:id', function() {
       let command;
 
-      before(function * () {
+      before(function* () {
         let res = yield request
           .post('/commands')
           .send({name: 'sleepy 2', command: 'sleep 2'})
@@ -167,7 +166,7 @@ describe('CRUN API', function() {
 
         command = res.body;
       });
-      it('should retrieve single command', function * () {
+      it('should retrieve single command', function* () {
         yield request
           .patch('/commands/' + command._id)
           .send({name: 'updated'})

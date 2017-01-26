@@ -1,8 +1,7 @@
 /* globals app, User */
-/* eslint max-nested-callbacks: ["error", 6] */
 import {expect} from 'chai';
 import _ from 'lodash';
-import rand from 'rand-token';
+import {generate as randString} from 'rand-token';
 import mongoose from 'mongoose';
 
 let ObjectId = mongoose.Types.ObjectId;
@@ -17,12 +16,12 @@ describe('CRUN API', function() {
     password: process.env.ADMIN_PASSWORD
   };
 
-  before(function * () {
+  before(function* () {
     yield app.started;
     request = require('supertest')(app.server);
   });
 
-  after(function * () {
+  after(function* () {
     app.server.close();
   });
 
@@ -30,10 +29,10 @@ describe('CRUN API', function() {
     describe('POST /users', function() {
       let role;
 
-      before(function * () {
+      before(function* () {
         let result = yield request
           .post('/roles')
-          .send({name: 'test', operations: [
+          .send({name: 'role ' + randString(8), operations: [
             {name: 'WRITE_COMMAND'},
             {name: 'READ_COMMAND'},
             {name: 'WRITE_GROUP'},
@@ -46,55 +45,75 @@ describe('CRUN API', function() {
         role = result.body;
       });
 
-      it('should create new user', function * () {
-        let params = {
-          username: 'users_' + rand.generate(6),
-          password: rand.generate(16),
-          roles: [role._id]
-        };
+      describe('Given valid parameters', function() {
+        it('should create new user', function* () {
+          let params = {
+            username: 'users_' + randString(6),
+            password: randString(16),
+            roles: [role._id]
+          };
 
-        let result = yield request
-          .post('/users')
-          .send(params)
-          .auth(admin.username, admin.password)
-          .expect(201)
-          .expect(function(res) {
-            expect(res.body).to.has.property('uri');
-            expect(res.body).to.has.property('_id');
-          });
+          let result = yield request
+            .post('/users')
+            .send(params)
+            .auth(admin.username, admin.password)
+            .expect(201)
+            .expect(function(res) {
+              expect(res.body).to.has.property('uri');
+              expect(res.body).to.has.property('_id');
+            });
 
-        let user = yield User
-          .findById(result.body._id)
-          .populate('roles')
-          .lean(true)
-          .exec();
+          let user = yield User
+            .findById(result.body._id)
+            .populate('roles')
+            .lean(true)
+            .exec();
 
-        expect(user).to.has.property('username', params.username);
-        expect(user).to.has.property('roles');
+          expect(user).to.has.property('username', params.username);
+          expect(user).to.has.property('roles');
+        });
       });
 
-      it('should return invalid request', function * () {
-        let params = {
-          username: 'users_' + rand.generate(6)
-        };
+      describe('Given invalid parameters', function() {
+        it('should return invalid request', function* () {
+          let params = {
+            username: 'users_' + randString(6)
+          };
 
-        yield request
-          .post('/users')
-          .send(params)
-          .auth(admin.username, admin.password)
-          .expect(function(res) {
-            expect(res.body).to.has.property('code', 'INVALID_REQUEST');
-          })
-          .expect(400);
+          yield request
+            .post('/users')
+            .send(params)
+            .auth(admin.username, admin.password)
+            .expect(function(res) {
+              expect(res.body).to.has.property('code', 'INVALID_REQUEST');
+            })
+            .expect(400);
+        });
+
+        it('should return invalid request', function* () {
+          let params = {
+            username: 'users_' + randString(6),
+            password: randString(6)
+          };
+
+          yield request
+            .post('/users')
+            .send(params)
+            .auth(admin.username, admin.password)
+            .expect(function(res) {
+              expect(res.body).to.has.property('code', 'INVALID_REQUEST');
+            })
+            .expect(400);
+        });
       });
     });
 
     describe('DELETE /users/:id', function() {
       let user = {
-        username: 'users_' + rand.generate(6),
-        password: rand.generate(16)
+        username: 'users_' + randString(6),
+        password: randString(16)
       };
-      before(function * () {
+      before(function* () {
         let result = yield request
           .post('/users')
           .send(user)
@@ -104,7 +123,7 @@ describe('CRUN API', function() {
         user._id = result.body._id;
       });
 
-      it('should remove single user', function * () {
+      it('should remove single user', function* () {
         yield request
           .delete('/users/' + user._id)
           .auth(admin.username, admin.password)
@@ -117,10 +136,10 @@ describe('CRUN API', function() {
 
     describe('GET /users/:id', function() {
       let user = {
-        username: 'users_' + rand.generate(6),
-        password: rand.generate(16)
+        username: 'users_' + randString(6),
+        password: randString(16)
       };
-      before(function * () {
+      before(function* () {
         let result = yield request
           .post('/users')
           .send(user)
@@ -130,7 +149,7 @@ describe('CRUN API', function() {
         user._id = result.body._id;
       });
 
-      it('should retrieve single user', function * () {
+      it('should retrieve single user', function* () {
         yield request
           .get('/users/' + user._id)
           .auth(admin.username, admin.password)
@@ -139,14 +158,13 @@ describe('CRUN API', function() {
             expect(res.body).to.has.property('links');
             expect(res.body.links).to.has.property('self');
             expect(res.body).to.has.property('data');
-            expect(res.body.data).to.has.property('_id');
             expect(res.body.data).to.has.property('username');
             expect(res.body.data).to.has.property('createdAt');
             expect(res.body.data).to.has.property('roles');
           });
       });
 
-      it('should return NOT_FOUND', function * () {
+      it('should return NOT_FOUND', function* () {
         yield request
           .get('/users/' + new ObjectId().toHexString())
           .auth(admin.username, admin.password)
@@ -158,20 +176,20 @@ describe('CRUN API', function() {
     });
 
     describe('GET /users', function() {
-      before(function * () {
+      before(function* () {
         yield _.times(10, () => {
           return request
             .post('/users')
             .send({
-              username: 'users_' + rand.generate(6),
-              password: rand.generate(16)
+              username: 'users_' + randString(6),
+              password: randString(16)
             })
             .auth(admin.username, admin.password)
             .expect(201);
         });
       });
 
-      it('should retrieve users', function * () {
+      it('should retrieve users', function* () {
         let result = yield request
           .get('/users')
           .auth(admin.username, admin.password)
@@ -190,7 +208,7 @@ describe('CRUN API', function() {
           });
 
         yield _.map(result.body.data, item => {
-          return function * () {
+          return function* () {
             let user = yield User.findById(item._id).exec();
             expect(user).to.not.equal(null);
           };

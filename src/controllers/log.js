@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 
 export let LogController = {
-  findOne: function * () {
+  findOne: function* () {
     let file = path
       .resolve(process.env.COMMAND_LOGS_DIR, this.params.id + '.log');
     try {

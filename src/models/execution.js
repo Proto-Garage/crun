@@ -14,13 +14,11 @@ let schema = new Schema({
     ref: 'User',
     required: true
   },
-  createdAt: Date,
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
   status: {}
-});
-
-schema.pre('save', function(next) {
-  this.createdAt = new Date();
-  next();
 });
 
 schema.index({status: {status: 1}});
