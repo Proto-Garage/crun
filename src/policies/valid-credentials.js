@@ -65,7 +65,7 @@ export let validCredentials = function* (next) {
   } else if (realm = 'API') {
     let token = yield APIToken
       .findOne({token: content})
-      .exect();
+      .exec();
 
     if (!token) {
       throw new AppError('UNAUTHORIZED', 'Unauthorized.');
