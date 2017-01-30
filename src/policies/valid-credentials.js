@@ -1,4 +1,4 @@
-/* globals AppError, User */
+/* globals AppError, User, APIToken */
 import _ from 'lodash';
 import jwt from 'jwt-simple';
 import {JWT_SECRET} from '../lib/jwt';
@@ -54,6 +54,25 @@ export let validCredentials = function* (next) {
 
     let user = yield User
       .findOne({_id: payload.user})
+      .populate('roles')
+      .exec();
+
+    if (!user) {
+      throw new AppError('NOT_FOUND', `${payload.user} user no longer exists.`);
+    }
+
+    this.user = user;
+  } else if (realm = 'API') {
+    let token = yield APIToken
+      .findOne({token: content})
+      .exect();
+
+    if (!token) {
+      throw new AppError('UNAUTHORIZED', 'Unauthorized.');
+    }
+
+    let user = yield User
+      .findOne({_id: token.owner})
       .populate('roles')
       .exec();
 
