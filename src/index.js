@@ -96,7 +96,8 @@ global.app.started = co(function* () {
     let admin = new User({
       username: process.env.ADMIN_USERNAME,
       password: process.env.ADMIN_PASSWORD,
-      roles: [role]
+      roles: [role],
+      admin: true
     });
     yield admin.save();
   }
