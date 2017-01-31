@@ -1,6 +1,6 @@
 {
   "name": "crun",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "An API for remotely running commands.",
   "main": "index.js",
   "scripts": {
