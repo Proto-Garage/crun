@@ -94,7 +94,7 @@ global.app.started = co(function* () {
   if (admin) {
     yield admin.update({
       username: process.env.ADMIN_USERNAME,
-      password: process.env.ADMIN_PASSWORD
+      password: yield Util.bcryptHash(process.env.ADMIN_PASSWORD)
     }).exec();
   } else {
     let admin = new User({
