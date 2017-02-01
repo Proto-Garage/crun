@@ -11,6 +11,7 @@ import json from 'koa-json';
 import compose from 'koa-compose';
 import bodyParser from 'koa-bodyparser';
 import Promise from 'bluebird';
+import cors from 'koa-cors';
 
 const mkdir = Promise.promisify(require('fs').mkdir);
 
@@ -27,6 +28,9 @@ let app = koa();
 global.app = {};
 
 global.app.started = co(function* () {
+  app.use(cors({
+    methods: 'GET,PATCH,POST,DELETE'
+  }));
   app.use(json({pretty: false, param: 'pretty'}));
   app.use(bodyParser());
 
