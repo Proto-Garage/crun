@@ -16,6 +16,7 @@ export default {
   'POST /roles': 'RoleController.create',
   'GET /roles/:id': 'RoleController.findOne',
   'DELETE /roles/:id': 'RoleController.remove',
+  'PATCH /roles/:id': 'RoleController.update',
   'POST /commands': 'CommandController.create',
   'GET /commands': 'CommandController.find',
   'GET /commands/:id': 'CommandController.findOne',
